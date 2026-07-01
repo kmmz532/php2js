@@ -57,11 +57,28 @@ type Transformer struct {
 	inClass     string
 	inFunction  bool
 	needsAsync  bool
+	scopes      []map[string]bool
 }
 
 // New creates a new Transformer.
 func New() *Transformer {
-	return &Transformer{}
+	return &Transformer{
+		scopes: []map[string]bool{{}},
+	}
+}
+
+func (t *Transformer) currentScope() map[string]bool {
+	return t.scopes[len(t.scopes)-1]
+}
+
+func (t *Transformer) pushScope() {
+	t.scopes = append(t.scopes, make(map[string]bool))
+}
+
+func (t *Transformer) popScope() map[string]bool {
+	scope := t.scopes[len(t.scopes)-1]
+	t.scopes = t.scopes[:len(t.scopes)-1]
+	return scope
 }
 
 // Transform converts a PHP AST root to a JS Program.
@@ -69,6 +86,8 @@ func (t *Transformer) Transform(root *ast.Root, filename string) *jsast.Program 
 	t.currentFile = filename
 	t.inClass = ""
 	t.inFunction = false
+	t.needsAsync = false
+	t.pushScope()
 
 	prog := &jsast.Program{
 		SourceFile: filename,
@@ -84,6 +103,17 @@ func (t *Transformer) Transform(root *ast.Root, filename string) *jsast.Program 
 	for _, stmt := range root.Stmts {
 		jsStmts := t.transformStmt(stmt)
 		prog.Body = append(prog.Body, jsStmts...)
+	}
+
+	scope := t.popScope()
+	var decls []jsast.Statement
+	for name := range scope {
+		if name != "this" && !jsReservedWords[name] {
+			decls = append(decls, &jsast.VarDecl{Kind: "let", Name: name})
+		}
+	}
+	if len(decls) > 0 {
+		prog.Body = append(decls, prog.Body...)
 	}
 
 	return prog
@@ -410,6 +440,8 @@ func (t *Transformer) transformClass(n *ast.StmtClass) []jsast.Statement {
 			t.inFunction = true
 			t.needsAsync = false
 
+			t.pushScope()
+
 			method := &jsast.ClassMethod{
 				Name:   t.extractName(s.Name),
 				Access: t.getModifiers(s.Modifiers),
@@ -424,6 +456,28 @@ func (t *Transformer) transformClass(n *ast.StmtClass) []jsast.Statement {
 			}
 
 			method.IsAsync = t.needsAsync
+
+			scope := t.popScope()
+			var decls []jsast.Statement
+			for name := range scope {
+				if name != "this" && !jsReservedWords[name] {
+					isParam := false
+					for _, p := range s.Params {
+						if param, ok := p.(*ast.Parameter); ok {
+							if name == t.extractName(param.Var.(*ast.ExprVariable).Name) {
+								isParam = true
+							}
+						}
+					}
+					if !isParam {
+						decls = append(decls, &jsast.VarDecl{Kind: "let", Name: name})
+					}
+				}
+			}
+			if len(decls) > 0 {
+				method.Body = append(decls, method.Body...)
+			}
+
 			cls.Methods = append(cls.Methods, method)
 			t.inFunction = prevInFunc
 		}
