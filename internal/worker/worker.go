@@ -127,6 +127,8 @@ export default {
       }
 
       // Populate _REQUEST
+      console.log('DEBUG _REQUEST:', __runtime.superglobals._REQUEST);
+      console.log('DEBUG _GET:', __runtime.superglobals._GET);
       Object.assign(__runtime.superglobals._REQUEST, __runtime.superglobals._GET);
       Object.assign(__runtime.superglobals._REQUEST, __runtime.superglobals._POST);
       Object.assign(__runtime.superglobals._REQUEST, __runtime.superglobals._COOKIE);
