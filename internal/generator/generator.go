@@ -144,7 +144,7 @@ func (g *Generator) genClass(cls *jsast.ClassDecl) {
 	g.writef("\n")
 	g.writeIndent()
 	if cls.IsExported {
-		g.writef("export ")
+		g.writef("globalThis.%s = ", cls.Name)
 	}
 	g.writef("class %s", cls.Name)
 	if cls.Extends != "" {
@@ -413,6 +413,9 @@ func (g *Generator) genExpr(expr jsast.Expression) {
 	case *jsast.UnaryExpr:
 		if e.Prefix {
 			g.writef("%s", e.Op)
+			if len(e.Op) > 0 && ((e.Op[0] >= 'a' && e.Op[0] <= 'z') || (e.Op[0] >= 'A' && e.Op[0] <= 'Z')) {
+				g.writef(" ")
+			}
 			needsParens := false
 			if _, isAssign := e.Operand.(*jsast.AssignExpr); isAssign {
 				needsParens = true

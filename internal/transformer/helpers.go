@@ -125,6 +125,9 @@ func (t *Transformer) mapFunctionName(name string) jsast.Expression {
 		"mb_substr": "mb_substr", "mb_strtolower": "mb_strtolower",
 		"mb_strtoupper": "mb_strtoupper", "mb_convert_encoding": "mb_convert_encoding",
 		"mb_detect_encoding": "mb_detect_encoding", "mb_internal_encoding": "mb_internal_encoding",
+		"mb_language": "mb_language", "mb_regex_encoding": "mb_regex_encoding",
+		"mb_convert_kana": "mb_convert_kana", "mb_ereg": "mb_ereg",
+		"mb_ereg_replace": "mb_ereg_replace",
 		// Array functions
 		"count": "count", "sizeof": "count",
 		"array_push": "array_push", "array_pop": "array_pop",

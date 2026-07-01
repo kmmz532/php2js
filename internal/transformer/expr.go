@@ -447,10 +447,16 @@ func (t *Transformer) transformNew(n *ast.ExprNew) jsast.Expression {
 			args = append(args, t.transformExpr(arg.Expr))
 		}
 	}
-	
+	var classExpr jsast.Expression
+	if className != "unknown" {
+		classExpr = &jsast.Literal{Value: fmt.Sprintf("`%s`", className), Kind: "string"}
+	} else {
+		classExpr = t.transformExpr(n.Class)
+	}
+
 	return &jsast.CallExpr{
 		Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "createObject"}},
-		Args:   append([]jsast.Expression{&jsast.Identifier{Name: className}}, args...),
+		Args:   append([]jsast.Expression{classExpr}, args...),
 		Await:  true,
 	}
 }

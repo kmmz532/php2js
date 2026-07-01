@@ -11,6 +11,7 @@ let _r2 = null;
 let _d1 = null;
 
 // Superglobals
+export const GLOBALS = {};
 export const superglobals = {
   _GET: {},
   _POST: {},
@@ -20,10 +21,8 @@ export const superglobals = {
   _REQUEST: {},
   _FILES: {},
   _ENV: {},
-  GLOBALS: {}
+  GLOBALS: GLOBALS
 };
-
-export const GLOBALS = superglobals.GLOBALS;
 
 // Constants
 export const CONST_PHP_EOL = '\n';
@@ -228,6 +227,13 @@ export function set_time_limit(seconds) { return true; }
 export function memory_get_usage() { return 1024 * 1024; }
 export function extension_loaded(name) { return true; }
 export function get_magic_quotes_gpc() { return false; }
+
+// --- MBString ---
+export function mb_language(lang) { return true; }
+export function mb_regex_encoding(enc) { return true; }
+export function mb_convert_kana(str, option) { return str; }
+export function mb_ereg(pattern, string, regs) { return false; }
+export function mb_ereg_replace(pattern, replacement, string) { return string; }
 
 export function sleep(seconds) { return new Promise(r => setTimeout(r, seconds * 1000)); }
 export function usleep(microseconds) { return new Promise(r => setTimeout(r, microseconds / 1000)); }
