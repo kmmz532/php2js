@@ -130,7 +130,7 @@ func (s *ForStatement) stmtNode()        {}
 
 // ForOfStatement represents for...of (from foreach).
 type ForOfStatement struct {
-	Key, Value string
+	Key, Value Expression
 	Iter       Expression
 	Body       []Statement
 }

@@ -257,12 +257,18 @@ func (g *Generator) genFor(s *jsast.ForStatement) {
 
 func (g *Generator) genForOf(s *jsast.ForOfStatement) {
 	g.writeIndent()
-	if s.Key != "" {
-		g.writef("for (let [%s, %s] of __runtime.entries(", s.Key, s.Value)
+	if s.Key != nil {
+		g.writef("for ([")
+		g.genExpr(s.Key)
+		g.writef(", ")
+		g.genExpr(s.Value)
+		g.writef("] of __runtime.entries(")
 		g.genExpr(s.Iter)
 		g.writef(")) {\n")
 	} else {
-		g.writef("for (let %s of __runtime.values(", s.Value)
+		g.writef("for (")
+		g.genExpr(s.Value)
+		g.writef(" of __runtime.values(")
 		g.genExpr(s.Iter)
 		g.writef(")) {\n")
 	}

@@ -327,9 +327,9 @@ func (t *Transformer) transformForeach(n *ast.StmtForeach) []jsast.Statement {
 	}
 
 	if n.Key != nil {
-		forOf.Key = t.extractVarName(n.Key)
+		forOf.Key = t.transformExpr(n.Key)
 	}
-	forOf.Value = t.extractVarName(n.Var)
+	forOf.Value = t.transformExpr(n.Var)
 
 	forOf.Body = t.transformStmtBlock(n.Stmt)
 	return []jsast.Statement{forOf}
