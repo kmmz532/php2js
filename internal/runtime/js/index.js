@@ -11,7 +11,9 @@ let _r2 = null;
 let _d1 = null;
 
 // Superglobals
-export const GLOBALS = {};
+export const GLOBALS = {
+  _LANG: { encode_hint: {}, skin: {} }
+};
 export const superglobals = {
   _GET: {},
   _POST: {},
@@ -242,6 +244,7 @@ export function mb_ereg(pattern, string, regs) { return false; }
 export function mb_ereg_replace(pattern, replacement, string) { return string; }
 export function mb_http_output(enc) { return 'pass'; }
 export function mb_detect_order(order) { return true; }
+export function mb_convert_variables(to_encoding, from_encoding, vars) { return from_encoding; }
 
 export function sleep(seconds) { return new Promise(r => setTimeout(r, seconds * 1000)); }
 export function usleep(microseconds) { return new Promise(r => setTimeout(r, microseconds / 1000)); }
