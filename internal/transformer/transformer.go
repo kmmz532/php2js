@@ -92,8 +92,12 @@ func (t *Transformer) Transform(root *ast.Root, filename string) *jsast.Program 
 // runtimeImportPath calculates relative path to runtime from a file.
 func runtimeImportPath(filename string) string {
 	dir := filepath.Dir(filename)
+	if dir == "." || dir == "/" {
+		return "../runtime/index.js"
+	}
+	// For "plugin", split returns ["plugin"], length 1. We need 2 levels up: "../../runtime"
 	depth := len(strings.Split(dir, string(filepath.Separator)))
-	prefix := strings.Repeat("../", depth)
+	prefix := strings.Repeat("../", depth+1)
 	return prefix + "runtime/index.js"
 }
 

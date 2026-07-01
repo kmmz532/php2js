@@ -160,14 +160,17 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 	case *ast.ExprClassConstFetch:
 		return t.transformClassConstFetch(n)
 	case *ast.ExprInclude:
+		t.needsAsync = true
 		return t.transformInclude(n)
 	case *ast.ExprRequire:
+		t.needsAsync = true
 		return &jsast.CallExpr{
 			Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "require"}},
 			Args:   []jsast.Expression{t.transformExpr(n.Expr)},
 			Await:  true,
 		}
 	case *ast.ExprRequireOnce:
+		t.needsAsync = true
 		return &jsast.CallExpr{
 			Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "require_once"}},
 			Args:   []jsast.Expression{t.transformExpr(n.Expr)},

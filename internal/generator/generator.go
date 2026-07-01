@@ -123,7 +123,7 @@ func (g *Generator) genFunction(fn *jsast.FunctionDecl) {
 	g.writef("\n")
 	g.writeIndent()
 	if fn.IsExported {
-		g.writef("export ")
+		g.writef("globalThis.%s = ", fn.Name)
 	}
 	if fn.IsAsync {
 		g.writef("async ")
@@ -412,11 +412,21 @@ func (g *Generator) genExpr(expr jsast.Expression) {
 		g.writef(")")
 	case *jsast.UnaryExpr:
 		if e.Prefix {
-			g.writef("%s ", e.Op)
+			g.writef("%s", e.Op)
+			needsParens := false
+			if _, isAssign := e.Operand.(*jsast.AssignExpr); isAssign {
+				needsParens = true
+			}
+			if needsParens {
+				g.writef("(")
+			}
 			g.genExpr(e.Operand)
+			if needsParens {
+				g.writef(")")
+			}
 		} else {
 			g.genExpr(e.Operand)
-			g.writef(" %s", e.Op)
+			g.writef("%s", e.Op)
 		}
 	case *jsast.UpdateExpr:
 		if e.Prefix {
