@@ -23,6 +23,8 @@ export const superglobals = {
   GLOBALS: {}
 };
 
+export const GLOBALS = superglobals.GLOBALS;
+
 // Constants
 export const CONST_PHP_EOL = '\n';
 export const CONST_PHP_INT_MAX = Number.MAX_SAFE_INTEGER;

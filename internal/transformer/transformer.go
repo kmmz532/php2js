@@ -197,18 +197,21 @@ func (t *Transformer) transformStmt(node ast.Vertex) []jsast.Statement {
 		// use statements become imports - simplified
 		return nil
 	case *ast.StmtStatic:
-		// static $var = val -> let var = val (static is per-request in Workers)
+		// static $var = val -> var = val
 		var stmts []jsast.Statement
 		for _, v := range n.Vars {
 			if sv, ok := v.(*ast.StmtStaticVar); ok {
-				decl := &jsast.VarDecl{
-					Kind: "let",
-					Name: t.extractVarName(sv.Var),
-				}
+				name := t.extractVarName(sv.Var)
+				t.currentScope()[name] = true
 				if sv.Expr != nil {
-					decl.Init = t.transformExpr(sv.Expr)
+					stmts = append(stmts, &jsast.ExprStatement{
+						Expr: &jsast.AssignExpr{
+							Op:    "=",
+							Left:  &jsast.Identifier{Name: name},
+							Right: t.transformExpr(sv.Expr),
+						},
+					})
 				}
-				stmts = append(stmts, decl)
 			}
 		}
 		return stmts
@@ -391,7 +394,7 @@ func (t *Transformer) transformFunction(n *ast.StmtFunction) []jsast.Statement {
 			isParam := false
 			for _, p := range n.Params {
 				if param, ok := p.(*ast.Parameter); ok {
-					if name == t.extractName(param.Var.(*ast.ExprVariable).Name) {
+					if name == t.extractVarName(param.Var) {
 						isParam = true
 					}
 				}
@@ -491,7 +494,7 @@ func (t *Transformer) transformClass(n *ast.StmtClass) []jsast.Statement {
 					isParam := false
 					for _, p := range s.Params {
 						if param, ok := p.(*ast.Parameter); ok {
-							if name == t.extractName(param.Var.(*ast.ExprVariable).Name) {
+							if name == t.extractVarName(param.Var) {
 								isParam = true
 							}
 						}

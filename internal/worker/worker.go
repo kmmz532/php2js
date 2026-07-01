@@ -148,6 +148,12 @@ export default {
 
       return new Response(body, { status, headers });
     } catch (error) {
+      if (error.message === '__PHP_EXIT__') {
+        const body = __runtime.getOutput();
+        const status = __runtime.getStatusCode();
+        const headers = __runtime.getHeaders();
+        return new Response(body, { status, headers });
+      }
       console.error('Worker error:', error);
       return new Response(
         ` + "`" + `<!DOCTYPE html><html><body><h1>500 Internal Server Error</h1><pre>${error.stack || error.message}</pre></body></html>` + "`" + `,

@@ -14,6 +14,9 @@ func (t *Transformer) extractVarName(node ast.Vertex) string {
 		if id, ok := n.Name.(*ast.Identifier); ok {
 			return sanitizeVarName(string(id.Value))
 		}
+		if name := t.extractName(n.Name); name != "unknown" {
+			return sanitizeVarName(name)
+		}
 	case *ast.Identifier:
 		return sanitizeVarName(string(n.Value))
 	}
