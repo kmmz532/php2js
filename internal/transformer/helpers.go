@@ -127,7 +127,8 @@ func (t *Transformer) mapFunctionName(name string) jsast.Expression {
 		"mb_detect_encoding": "mb_detect_encoding", "mb_internal_encoding": "mb_internal_encoding",
 		"mb_language": "mb_language", "mb_regex_encoding": "mb_regex_encoding",
 		"mb_convert_kana": "mb_convert_kana", "mb_ereg": "mb_ereg",
-		"mb_ereg_replace": "mb_ereg_replace",
+		"mb_ereg_replace": "mb_ereg_replace", "mb_http_output": "mb_http_output",
+		"mb_detect_order": "mb_detect_order",
 		// Array functions
 		"count": "count", "sizeof": "count",
 		"array_push": "array_push", "array_pop": "array_pop",
@@ -204,6 +205,8 @@ func (t *Transformer) mapFunctionName(name string) jsast.Expression {
 		"error_reporting": "error_reporting", "ini_set": "ini_set", "ini_get": "ini_get",
 		"set_time_limit": "set_time_limit", "memory_get_usage": "memory_get_usage",
 		"extension_loaded": "extension_loaded", "get_magic_quotes_gpc": "get_magic_quotes_gpc",
+		"constant": "constant", "is_readable": "is_readable", "is_writable": "is_writable",
+		"is_callable": "is_callable",
 	}
 
 	if jsName, ok := builtins[name]; ok {
