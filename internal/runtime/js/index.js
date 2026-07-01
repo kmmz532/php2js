@@ -372,9 +372,9 @@ export async function require_once(path) {
   return result;
 }
 
-export async function include_once(path) { return include(path); }
+// export async function include_once(path) { return include(path); }
 export async function require(path) { return include(path); }
-export async function require_once(path) { return include(path); }
+// export async function require_once(path) { return include(path); }
 
 // --- Object Creation ---
 export async function createObject(ClassRef, ...args) {

@@ -5,7 +5,7 @@ export function preg_match(pattern, subject, matches) {
   const { regex, flags } = _parsePattern(pattern);
   let re;
   try { re = new RegExp(regex, flags.replace('g', '')); }
-  catch (e) { console.warn('preg_match: ' + e.message); return 0; }
+  catch (e) { /* console.warn('preg_match: ' + e.message); */ return 0; }
   const m = String(subject).match(re);
   if (!m) return 0;
   if (matches && typeof matches === 'object') {
