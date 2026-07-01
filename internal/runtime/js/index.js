@@ -14,6 +14,7 @@ let _d1 = null;
 export const GLOBALS = {
   _LANG: { encode_hint: {}, skin: {} }
 };
+export const statics = {};
 export const superglobals = {
   _GET: {},
   _POST: {},

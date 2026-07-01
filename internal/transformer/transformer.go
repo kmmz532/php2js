@@ -67,6 +67,8 @@ type Transformer struct {
 	needsAsync  bool
 	scopes      []map[string]bool
 	globalVars  []map[string]bool
+	staticVars  []map[string]string
+	currentFunc string
 }
 
 // New creates a new Transformer.
@@ -74,6 +76,7 @@ func New() *Transformer {
 	return &Transformer{
 		scopes:     []map[string]bool{{}},
 		globalVars: []map[string]bool{{}},
+		staticVars: []map[string]string{{}},
 	}
 }
 
@@ -84,12 +87,14 @@ func (t *Transformer) currentScope() map[string]bool {
 func (t *Transformer) pushScope() {
 	t.scopes = append(t.scopes, make(map[string]bool))
 	t.globalVars = append(t.globalVars, make(map[string]bool))
+	t.staticVars = append(t.staticVars, make(map[string]string))
 }
 
 func (t *Transformer) popScope() map[string]bool {
 	scope := t.scopes[len(t.scopes)-1]
 	t.scopes = t.scopes[:len(t.scopes)-1]
 	t.globalVars = t.globalVars[:len(t.globalVars)-1]
+	t.staticVars = t.staticVars[:len(t.staticVars)-1]
 	return scope
 }
 
@@ -205,21 +210,44 @@ func (t *Transformer) transformStmt(node ast.Vertex) []jsast.Statement {
 		// use statements become imports - simplified
 		return nil
 	case *ast.StmtStatic:
-		// static $var = val -> var = val
 		var stmts []jsast.Statement
 		for _, v := range n.Vars {
 			if sv, ok := v.(*ast.StmtStaticVar); ok {
 				name := t.extractVarName(sv.Var)
-				t.currentScope()[name] = true
-				if sv.Expr != nil {
-					stmts = append(stmts, &jsast.ExprStatement{
-						Expr: &jsast.AssignExpr{
-							Op:    "=",
-							Left:  &jsast.Identifier{Name: name},
-							Right: t.transformExpr(sv.Expr),
-						},
-					})
+				
+				prefix := t.currentFunc
+				if t.inClass != "" {
+					prefix = t.inClass + "_" + prefix
 				}
+				if prefix == "" {
+					prefix = "global"
+				}
+				staticName := fmt.Sprintf("%s_%s", prefix, name)
+				t.staticVars[len(t.staticVars)-1][name] = staticName
+
+				left := &jsast.MemberExpr{
+					Object: &jsast.MemberExpr{
+						Object:   &jsast.Identifier{Name: "__runtime"},
+						Property: &jsast.Identifier{Name: "statics"},
+					},
+					Property: &jsast.Literal{Value: fmt.Sprintf(`"%s"`, staticName), Kind: "string"},
+					Computed: true,
+				}
+
+				var right jsast.Expression
+				if sv.Expr != nil {
+					right = t.transformExpr(sv.Expr)
+				} else {
+					right = &jsast.Identifier{Name: "null"}
+				}
+
+				stmts = append(stmts, &jsast.ExprStatement{
+					Expr: &jsast.AssignExpr{
+						Op:    "??=",
+						Left:  left,
+						Right: right,
+					},
+				})
 			}
 		}
 		return stmts
@@ -373,10 +401,15 @@ func (t *Transformer) transformThrow(n *ast.StmtThrow) []jsast.Statement {
 
 func (t *Transformer) transformFunction(n *ast.StmtFunction) []jsast.Statement {
 	prevInFunc := t.inFunction
+	prevFunc := t.currentFunc
 	t.inFunction = true
+	t.currentFunc = t.extractName(n.Name)
 	t.needsAsync = false
 	t.pushScope()
-	defer func() { t.inFunction = prevInFunc }()
+	defer func() {
+		t.inFunction = prevInFunc
+		t.currentFunc = prevFunc
+	}()
 
 	fn := &jsast.FunctionDecl{
 		Name:       t.extractName(n.Name),
@@ -475,7 +508,9 @@ func (t *Transformer) transformClass(n *ast.StmtClass) []jsast.Statement {
 			}
 		case *ast.StmtClassMethod:
 			prevInFunc := t.inFunction
+			prevFunc := t.currentFunc
 			t.inFunction = true
+			t.currentFunc = t.extractName(s.Name)
 			t.needsAsync = false
 
 			t.pushScope()
@@ -518,6 +553,7 @@ func (t *Transformer) transformClass(n *ast.StmtClass) []jsast.Statement {
 
 			cls.Methods = append(cls.Methods, method)
 			t.inFunction = prevInFunc
+			t.currentFunc = prevFunc
 		}
 	}
 

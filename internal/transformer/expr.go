@@ -274,6 +274,18 @@ func (t *Transformer) transformVariable(n *ast.ExprVariable) jsast.Expression {
 		}
 	}
 
+	// Check for static
+	if staticName, ok := t.staticVars[len(t.staticVars)-1][name]; ok {
+		return &jsast.MemberExpr{
+			Object: &jsast.MemberExpr{
+				Object:   &jsast.Identifier{Name: "__runtime"},
+				Property: &jsast.Identifier{Name: "statics"},
+			},
+			Property: &jsast.Literal{Value: fmt.Sprintf(`"%s"`, staticName), Kind: "string"},
+			Computed: true,
+		}
+	}
+
 	// $this -> this
 	if name == "this" {
 		return &jsast.Identifier{Name: "this"}
