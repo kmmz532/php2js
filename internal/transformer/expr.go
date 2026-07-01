@@ -469,9 +469,14 @@ func (t *Transformer) transformConstFetch(n *ast.ExprConstFetch) jsast.Expressio
 	case "directory_separator", "dir_separator":
 		return &jsast.Literal{Value: `"/"`, Kind: "string"}
 	default:
-		return &jsast.MemberExpr{
-			Object:   &jsast.Identifier{Name: "__runtime"},
-			Property: &jsast.Identifier{Name: "CONST_" + name},
+		return &jsast.CallExpr{
+			Callee: &jsast.MemberExpr{
+				Object:   &jsast.Identifier{Name: "__runtime"},
+				Property: &jsast.Identifier{Name: "constant"},
+			},
+			Args: []jsast.Expression{
+				&jsast.Literal{Value: fmt.Sprintf(`"%s"`, name), Kind: "string"},
+			},
 		}
 	}
 }

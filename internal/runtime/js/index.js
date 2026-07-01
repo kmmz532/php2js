@@ -46,8 +46,14 @@ export const CONST_STR_PAD_RIGHT = 1;
 export const CONST_STR_PAD_LEFT = 0;
 export const CONST_STR_PAD_BOTH = 2;
 
-// User-defined constants
-const _constants = {};
+// User-defined constants and some built-ins
+const _constants = {
+  'E_ERROR': 1,
+  'E_WARNING': 2,
+  'E_PARSE': 4,
+  'E_NOTICE': 8,
+  'E_ALL': 32767
+};
 
 export function init(config) {
   _env = config.env;
@@ -208,6 +214,7 @@ export function strval(v) { return String(v ?? ''); }
 // --- Constants ---
 export function define(name, value) { _constants[name] = value; }
 export function defined(name) { return name in _constants; }
+export function constant(name) { return _constants[name]; }
 
 // --- Misc ---
 export function die(msg = '') { if (msg) echo(msg); throw new Error('__PHP_EXIT__'); }
