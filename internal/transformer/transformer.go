@@ -511,9 +511,15 @@ func (t *Transformer) transformUnset(n *ast.StmtUnset) []jsast.Statement {
 	var stmts []jsast.Statement
 	for _, v := range n.Vars {
 		expr := t.transformExpr(v)
-		stmts = append(stmts, &jsast.ExprStatement{
-			Expr: &jsast.UnaryExpr{Op: "delete", Operand: expr, Prefix: true},
-		})
+		if _, ok := expr.(*jsast.Identifier); ok {
+			stmts = append(stmts, &jsast.ExprStatement{
+				Expr: &jsast.AssignExpr{Op: "=", Left: expr, Right: &jsast.Identifier{Name: "undefined"}},
+			})
+		} else {
+			stmts = append(stmts, &jsast.ExprStatement{
+				Expr: &jsast.UnaryExpr{Op: "delete", Operand: expr, Prefix: true},
+			})
+		}
 	}
 	return stmts
 }

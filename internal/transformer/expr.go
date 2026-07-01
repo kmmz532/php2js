@@ -31,6 +31,8 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 		return t.transformEncapsed(n)
 	case *ast.ScalarEncapsedStringPart:
 		return &jsast.Literal{Value: fmt.Sprintf(`"%s"`, escapeJSString(string(n.Value))), Kind: "string"}
+	case *ast.ScalarEncapsedStringBrackets:
+		return t.transformExpr(n.Var)
 	case *ast.ExprAssign:
 		return t.transformAssign(n)
 	case *ast.ExprAssignPlus:
