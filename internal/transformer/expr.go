@@ -43,17 +43,17 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 	case *ast.ExprAssign:
 		return t.transformAssign(n)
 	case *ast.ExprAssignPlus:
-		return &jsast.AssignExpr{Op: "+=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "+=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprAssignMinus:
-		return &jsast.AssignExpr{Op: "-=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "-=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprAssignMul:
-		return &jsast.AssignExpr{Op: "*=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "*=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprAssignDiv:
-		return &jsast.AssignExpr{Op: "/=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "/=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprAssignMod:
-		return &jsast.AssignExpr{Op: "%=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "%=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprAssignConcat:
-		return &jsast.AssignExpr{Op: "+=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "+=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprBinaryPlus:
 		return &jsast.BinaryExpr{Op: "+", Left: t.transformExpr(n.Left), Right: t.transformExpr(n.Right)}
 	case *ast.ExprBinaryMinus:
@@ -202,7 +202,7 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 		}
 	case *ast.ExprAssignReference:
 		// JS doesn't have references; treat as normal assignment
-		return &jsast.AssignExpr{Op: "=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ScalarHeredoc:
 		return t.transformHeredoc(n)
 	case *ast.ExprBrackets:
@@ -221,19 +221,19 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 	case *ast.ExprCastObject:
 		return &jsast.CallExpr{Callee: &jsast.Identifier{Name: "Object"}, Args: []jsast.Expression{t.transformExpr(n.Expr)}}
 	case *ast.ExprAssignBitwiseAnd:
-		return &jsast.AssignExpr{Op: "&=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "&=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprAssignBitwiseOr:
-		return &jsast.AssignExpr{Op: "|=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "|=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprAssignBitwiseXor:
-		return &jsast.AssignExpr{Op: "^=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "^=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprAssignShiftLeft:
-		return &jsast.AssignExpr{Op: "<<=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "<<=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprAssignShiftRight:
-		return &jsast.AssignExpr{Op: ">>=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: ">>=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprAssignPow:
-		return &jsast.AssignExpr{Op: "**=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "**=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprAssignCoalesce:
-		return &jsast.AssignExpr{Op: "??=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+		return &jsast.AssignExpr{Op: "??=", Left: t.transformAssignLHS(n.Var), Right: t.transformExpr(n.Expr)}
 	case *ast.ExprClone:
 		return &jsast.CallExpr{
 			Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "Object"}, Property: &jsast.Identifier{Name: "assign"}},
@@ -296,9 +296,40 @@ func (t *Transformer) transformVariable(n *ast.ExprVariable) jsast.Expression {
 func (t *Transformer) transformAssign(n *ast.ExprAssign) jsast.Expression {
 	return &jsast.AssignExpr{
 		Op:    "=",
-		Left:  t.transformExpr(n.Var),
+		Left:  t.transformAssignLHS(n.Var),
 		Right: t.transformExpr(n.Expr),
 	}
+}
+
+func (t *Transformer) transformAssignLHS(node ast.Vertex) jsast.Expression {
+	if dimFetch, ok := node.(*ast.ExprArrayDimFetch); ok {
+		obj := t.transformAssignLHS(dimFetch.Var)
+		
+		var defaultVal jsast.Expression = &jsast.ObjectExpr{}
+		if dimFetch.Dim == nil {
+			defaultVal = &jsast.ArrayExpr{}
+		}
+
+		leftObj := &jsast.AssignExpr{Op: "??=", Left: obj, Right: defaultVal}
+		
+		if dimFetch.Dim == nil {
+			return &jsast.MemberExpr{
+				Object: leftObj,
+				Property: &jsast.CallExpr{
+					Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "arrayNextIndex"}},
+					Args: []jsast.Expression{leftObj},
+				},
+				Computed: true,
+			}
+		}
+		
+		return &jsast.MemberExpr{
+			Object:   leftObj,
+			Property: t.transformExpr(dimFetch.Dim),
+			Computed: true,
+		}
+	}
+	return t.transformExpr(node)
 }
 
 func (t *Transformer) transformEncapsed(n *ast.ScalarEncapsed) jsast.Expression {

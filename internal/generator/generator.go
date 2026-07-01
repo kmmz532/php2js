@@ -480,7 +480,17 @@ func (g *Generator) genExpr(expr jsast.Expression) {
 		}
 		g.writef(")")
 	case *jsast.MemberExpr:
+		needsParens := false
+		if _, isAssign := e.Object.(*jsast.AssignExpr); isAssign {
+			needsParens = true
+		}
+		if needsParens {
+			g.writef("(")
+		}
 		g.genExpr(e.Object)
+		if needsParens {
+			g.writef(")")
+		}
 		if e.Computed {
 			g.writef("[")
 			g.genExpr(e.Property)
