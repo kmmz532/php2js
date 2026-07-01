@@ -237,3 +237,12 @@ export function array_pad(arr, size, value) {
   }
   return a;
 }
+
+export function arrayNextIndex(arr) {
+  if (Array.isArray(arr)) return arr.length;
+  let max = -1;
+  for (const k in arr) {
+    if (!isNaN(k)) max = Math.max(max, parseInt(k));
+  }
+  return max + 1;
+}
