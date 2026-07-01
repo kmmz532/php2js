@@ -1,2 +1,4 @@
 pukiwiki-1.5.4_utf8/*
 output/*
+config/
+/php2js

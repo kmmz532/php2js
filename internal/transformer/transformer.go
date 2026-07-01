@@ -12,15 +12,15 @@ import (
 
 // phpReservedToJS maps PHP superglobals to runtime accessors.
 var phpSuperglobals = map[string]string{
-	"_GET":     "__runtime.GET",
-	"_POST":    "__runtime.POST",
-	"_SERVER":  "__runtime.SERVER",
-	"_COOKIE":  "__runtime.COOKIE",
-	"_SESSION": "__runtime.SESSION",
-	"_REQUEST": "__runtime.REQUEST",
-	"_FILES":   "__runtime.FILES",
-	"_ENV":     "__runtime.ENV",
-	"GLOBALS":  "__runtime.GLOBALS",
+	"_GET":     "__runtime.superglobals._GET",
+	"_POST":    "__runtime.superglobals._POST",
+	"_SERVER":  "__runtime.superglobals._SERVER",
+	"_COOKIE":  "__runtime.superglobals._COOKIE",
+	"_SESSION": "__runtime.superglobals._SESSION",
+	"_REQUEST": "__runtime.superglobals._REQUEST",
+	"_FILES":   "__runtime.superglobals._FILES",
+	"_ENV":     "__runtime.superglobals._ENV",
+	"GLOBALS":  "__runtime.superglobals.GLOBALS",
 }
 
 // jsReservedWords are JavaScript reserved words that need mangling.

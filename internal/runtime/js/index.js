@@ -11,15 +11,17 @@ let _r2 = null;
 let _d1 = null;
 
 // Superglobals
-export let GET = {};
-export let POST = {};
-export let SERVER = {};
-export let COOKIE = {};
-export let SESSION = {};
-export let REQUEST = {};
-export let FILES = {};
-export let ENV = {};
-export let GLOBALS = {};
+export const superglobals = {
+  _GET: {},
+  _POST: {},
+  _SERVER: {},
+  _COOKIE: {},
+  _SESSION: {},
+  _REQUEST: {},
+  _FILES: {},
+  _ENV: {},
+  GLOBALS: {}
+};
 
 // Constants
 export const CONST_PHP_EOL = '\n';

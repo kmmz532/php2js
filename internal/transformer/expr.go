@@ -2,6 +2,7 @@ package transformer
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/VKCOM/php-parser/pkg/ast"
@@ -33,6 +34,8 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 		return &jsast.Literal{Value: fmt.Sprintf(`"%s"`, escapeJSString(string(n.Value))), Kind: "string"}
 	case *ast.ScalarEncapsedStringBrackets:
 		return t.transformExpr(n.Var)
+	case *ast.ScalarEncapsedStringVar:
+		return &jsast.Identifier{Name: t.extractName(n.Name)}
 	case *ast.ExprAssign:
 		return t.transformAssign(n)
 	case *ast.ExprAssignPlus:
@@ -389,12 +392,17 @@ func (t *Transformer) transformArray(n *ast.ExprArray) jsast.Expression {
 	if hasStringKeys {
 		// Associative array -> PhpArray or object
 		obj := &jsast.ObjectExpr{}
+		nextIdx := 0
 		for _, item := range n.Items {
 			if ai, ok := item.(*ast.ExprArrayItem); ok {
 				prop := &jsast.ObjectProperty{Value: t.transformExpr(ai.Val)}
 				if ai.Key != nil {
 					prop.Key = t.transformExpr(ai.Key)
 					prop.Computed = true
+				} else {
+					prop.Key = &jsast.Literal{Value: strconv.Itoa(nextIdx), Kind: "number"}
+					prop.Computed = true
+					nextIdx++
 				}
 				obj.Properties = append(obj.Properties, prop)
 			}

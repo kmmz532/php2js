@@ -54,22 +54,22 @@ export default {
       const method = request.method;
 
       // Set up PHP superglobals
-      __runtime.SERVER['REQUEST_METHOD'] = method;
-      __runtime.SERVER['REQUEST_URI'] = url.pathname + url.search;
-      __runtime.SERVER['QUERY_STRING'] = url.search.slice(1);
-      __runtime.SERVER['HTTP_HOST'] = url.hostname;
-      __runtime.SERVER['SCRIPT_NAME'] = '/index.php';
-      __runtime.SERVER['SERVER_NAME'] = url.hostname;
-      __runtime.SERVER['SERVER_PORT'] = url.port || (url.protocol === 'https:' ? '443' : '80');
-      __runtime.SERVER['HTTPS'] = url.protocol === 'https:' ? 'on' : 'off';
-      __runtime.SERVER['REMOTE_ADDR'] = request.headers.get('cf-connecting-ip') || '127.0.0.1';
-      __runtime.SERVER['HTTP_USER_AGENT'] = request.headers.get('user-agent') || '';
-      __runtime.SERVER['HTTP_REFERER'] = request.headers.get('referer') || '';
-      __runtime.SERVER['CONTENT_TYPE'] = request.headers.get('content-type') || '';
+      __runtime.superglobals._SERVER['REQUEST_METHOD'] = method;
+      __runtime.superglobals._SERVER['REQUEST_URI'] = url.pathname + url.search;
+      __runtime.superglobals._SERVER['QUERY_STRING'] = url.search.slice(1);
+      __runtime.superglobals._SERVER['HTTP_HOST'] = url.hostname;
+      __runtime.superglobals._SERVER['SCRIPT_NAME'] = '/index.php';
+      __runtime.superglobals._SERVER['SERVER_NAME'] = url.hostname;
+      __runtime.superglobals._SERVER['SERVER_PORT'] = url.port || (url.protocol === 'https:' ? '443' : '80');
+      __runtime.superglobals._SERVER['HTTPS'] = url.protocol === 'https:' ? 'on' : 'off';
+      __runtime.superglobals._SERVER['REMOTE_ADDR'] = request.headers.get('cf-connecting-ip') || '127.0.0.1';
+      __runtime.superglobals._SERVER['HTTP_USER_AGENT'] = request.headers.get('user-agent') || '';
+      __runtime.superglobals._SERVER['HTTP_REFERER'] = request.headers.get('referer') || '';
+      __runtime.superglobals._SERVER['CONTENT_TYPE'] = request.headers.get('content-type') || '';
 
       // Parse GET parameters
       for (const [key, value] of url.searchParams.entries()) {
-        __runtime.GET[key] = value;
+        __runtime.superglobals._GET[key] = value;
       }
 
       // Parse POST body
@@ -79,14 +79,14 @@ export default {
           const text = await request.text();
           const params = new URLSearchParams(text);
           for (const [key, value] of params.entries()) {
-            __runtime.POST[key] = value;
+            __runtime.superglobals._POST[key] = value;
           }
         } else if (contentType.includes('multipart/form-data')) {
           try {
             const formData = await request.formData();
             for (const [key, value] of formData.entries()) {
               if (value instanceof File) {
-                __runtime.FILES[key] = {
+                __runtime.superglobals._FILES[key] = {
                   name: value.name,
                   type: value.type,
                   size: value.size,
@@ -95,7 +95,7 @@ export default {
                   _file: value,
                 };
               } else {
-                __runtime.POST[key] = value;
+                __runtime.superglobals._POST[key] = value;
               }
             }
           } catch (e) {
@@ -128,6 +128,11 @@ export default {
         const serverKey = 'HTTP_' + key.toUpperCase().replace(/-/g, '_');
         __runtime.SERVER[serverKey] = value;
       }
+
+      // Populate _REQUEST
+      Object.assign(__runtime.superglobals._REQUEST, __runtime.superglobals._GET);
+      Object.assign(__runtime.superglobals._REQUEST, __runtime.superglobals._POST);
+      Object.assign(__runtime.superglobals._REQUEST, __runtime.superglobals._COOKIE);
 
       // Import and execute the transpiled index
       const app = await import('./transpiled/index.js');
