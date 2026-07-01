@@ -194,6 +194,7 @@ export function is_bool(v) { return typeof v === 'boolean'; }
 export function is_null(v) { return v === null || v === undefined; }
 export function is_numeric(v) { return !isNaN(parseFloat(v)) && isFinite(v); }
 export function is_object(v) { return typeof v === 'object' && v !== null && !Array.isArray(v); }
+export function is_callable(v) { return typeof v === 'function'; }
 export function gettype(v) {
   if (v === null || v === undefined) return 'NULL';
   if (typeof v === 'boolean') return 'boolean';
@@ -227,6 +228,11 @@ export function set_time_limit(seconds) { return true; }
 export function memory_get_usage() { return 1024 * 1024; }
 export function extension_loaded(name) { return true; }
 export function get_magic_quotes_gpc() { return false; }
+
+// --- File I/O ---
+export async function file_exists(path) { return true; }
+export function is_readable(path) { return true; }
+export function is_writable(path) { return true; }
 
 // --- MBString ---
 export function mb_language(lang) { return true; }
