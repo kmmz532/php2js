@@ -307,7 +307,11 @@ export function toArray(v) {
   return [v];
 }
 
+let aaa = 0;
 export async function include(path) {
+  // aaa++;
+  // if (aaa > 30) return;
+
   let phpPath = String(path);
 
   if (phpPath.startsWith('./')) phpPath = phpPath.slice(2);
