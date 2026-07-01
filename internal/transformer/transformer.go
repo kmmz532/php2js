@@ -415,10 +415,6 @@ func (t *Transformer) transformClass(n *ast.StmtClass) []jsast.Statement {
 				Access: t.getModifiers(s.Modifiers),
 			}
 
-			if method.Name == "__construct" {
-				method.Name = "constructor"
-			}
-
 			for _, p := range s.Params {
 				method.Params = append(method.Params, t.transformParam(p))
 			}

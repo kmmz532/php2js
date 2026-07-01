@@ -428,6 +428,7 @@ func (t *Transformer) transformArray(n *ast.ExprArray) jsast.Expression {
 }
 
 func (t *Transformer) transformNew(n *ast.ExprNew) jsast.Expression {
+	t.needsAsync = true
 	className := t.extractCallName(n.Class)
 	var args []jsast.Expression
 	for _, a := range n.Args {
@@ -435,7 +436,12 @@ func (t *Transformer) transformNew(n *ast.ExprNew) jsast.Expression {
 			args = append(args, t.transformExpr(arg.Expr))
 		}
 	}
-	return &jsast.NewExpr{Callee: &jsast.Identifier{Name: className}, Args: args}
+	
+	return &jsast.CallExpr{
+		Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "createObject"}},
+		Args:   append([]jsast.Expression{&jsast.Identifier{Name: className}}, args...),
+		Await:  true,
+	}
 }
 
 func (t *Transformer) transformTernary(n *ast.ExprTernary) jsast.Expression {
