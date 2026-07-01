@@ -237,13 +237,13 @@ export function _resolveCallable(fn) {
 
 export function class_exists(name) { return typeof globalThis[name] === 'function'; }
 export function function_exists(name) { return typeof globalThis[name] === 'function'; }
-export function call_user_func(fn, ...args) { 
+export function call_user_func(fn, ...args) {
   fn = _resolveCallable(fn);
-  return typeof fn === 'function' ? fn(...args) : undefined; 
+  return typeof fn === 'function' ? fn(...args) : undefined;
 }
-export function call_user_func_array(fn, args) { 
+export function call_user_func_array(fn, args) {
   fn = _resolveCallable(fn);
-  return typeof fn === 'function' ? fn(...args) : undefined; 
+  return typeof fn === 'function' ? fn(...args) : undefined;
 }
 
 // --- Environment / Error ---
@@ -336,6 +336,40 @@ export async function include(path) {
     console.error("include error", phpPath, e);
     throw e;
   }
+}
+
+const includedFiles = new Set();
+
+function normalize(path) {
+  let p = String(path);
+
+  if (p.startsWith('./')) p = p.slice(2);
+  if (p.startsWith('/')) p = p.slice(1);
+
+  return p;
+}
+
+export async function include_once(path) {
+  const p = normalize(path);
+
+  if (includedFiles.has(p)) return true;
+
+  const result = await include(p);
+
+  if (result !== null) includedFiles.add(p);
+  return result;
+}
+
+export async function require_once(path) {
+  const p = normalize(path);
+
+  if (includedFiles.has(p)) return true;
+
+  const result = await include(p);
+  if (result !== null) includedFiles.add(p);
+  else throw new Error(`Failed opening required file: ${p}`);
+
+  return result;
 }
 
 export async function include_once(path) { return include(path); }
