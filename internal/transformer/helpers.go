@@ -120,7 +120,7 @@ func (t *Transformer) mapFunctionName(name string) jsast.Expression {
 		"nl2br": "nl2br", "wordwrap": "wordwrap",
 		"str_pad": "str_pad", "str_repeat": "str_repeat",
 		"str_split": "str_split", "chunk_split": "chunk_split",
-		"ord": "ord", "chr": "chr",
+		"ord": "ord", "chr": "chr", "bin2hex": "bin2hex", "hex2bin": "hex2bin",
 		"mb_strlen": "mb_strlen", "mb_strpos": "mb_strpos",
 		"mb_substr": "mb_substr", "mb_strtolower": "mb_strtolower",
 		"mb_strtoupper": "mb_strtoupper", "mb_convert_encoding": "mb_convert_encoding",
@@ -183,6 +183,8 @@ func (t *Transformer) mapFunctionName(name string) jsast.Expression {
 		"mkdir": "mkdir", "rmdir": "rmdir", "is_dir": "is_dir", "is_file": "is_file",
 		"dirname": "dirname", "basename": "basename", "pathinfo": "pathinfo",
 		"realpath": "realpath", "file": "file",
+		"filemtime": "filemtime", "filectime": "filectime", "filesize": "filesize", "clearstatcache": "clearstatcache",
+		"fileatime": "fileatime", "chmod": "chmod", "chown": "chown", "copy": "copy", "touch": "touch",
 		// Output
 		"echo": "echo", "print": "echo", "var_dump": "var_dump",
 		"print_r": "print_r", "var_export": "var_export",

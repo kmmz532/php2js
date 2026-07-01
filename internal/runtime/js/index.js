@@ -205,6 +205,11 @@ export function gettype(v) {
   if (Array.isArray(v)) return 'array';
   return 'object';
 }
+export function str_repeat(str, times) { return String(str).repeat(Math.max(0, times)); }
+export function ord(str) { return String(str).charCodeAt(0); }
+export function chr(ascii) { return String.fromCharCode(ascii); }
+export function bin2hex(str) { return Array.from(String(str)).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join(''); }
+export function hex2bin(hex) { return hex.match(/.{1,2}/g)?.map(byte => String.fromCharCode(parseInt(byte, 16))).join('') || ''; }
 export function intval(v, base = 10) { return parseInt(v, base) || 0; }
 export function floatval(v) { return parseFloat(v) || 0; }
 export function strval(v) { return String(v ?? ''); }
@@ -253,6 +258,15 @@ export function get_magic_quotes_gpc() { return false; }
 export async function file_exists(path) { return true; }
 export function is_readable(path) { return true; }
 export function is_writable(path) { return true; }
+export function filemtime(path) { return Math.floor(Date.now() / 1000); }
+export function filectime(path) { return Math.floor(Date.now() / 1000); }
+export function filesize(path) { return 0; }
+export function fileatime(path) { return Math.floor(Date.now() / 1000); }
+export function chmod(path, mode) { return true; }
+export function chown(path, user) { return true; }
+export function copy(src, dest) { return true; }
+export function touch(path, time, atime) { return true; }
+export function clearstatcache() { }
 
 // --- MBString ---
 export function mb_language(lang) { return true; }
