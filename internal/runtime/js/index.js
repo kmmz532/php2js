@@ -73,6 +73,14 @@ export function reset() {
   _output = '';
   _headers = new Headers();
   _statusCode = 200;
+  
+  superglobals._GET = {};
+  superglobals._POST = {};
+  superglobals._REQUEST = {};
+  superglobals._COOKIE = {};
+  superglobals._FILES = {};
+  superglobals._SERVER = {};
+  // DO NOT reset GLOBALS as it breaks include caching and shared state in this simple model
 }
 
 export function getOutput() { return _output; }
