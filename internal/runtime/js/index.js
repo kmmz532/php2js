@@ -223,6 +223,7 @@ export function call_user_func(fn, ...args) { return typeof fn === 'function' ? 
 export function call_user_func_array(fn, args) { return typeof fn === 'function' ? fn(...args) : undefined; }
 
 // --- Environment / Error ---
+export function version_compare(v1, v2, op) { return false; }
 export function error_reporting(level) { return 0; }
 export function ini_set(key, value) { return false; }
 export function ini_get(key) { return ''; }

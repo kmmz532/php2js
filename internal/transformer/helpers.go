@@ -206,7 +206,7 @@ func (t *Transformer) mapFunctionName(name string) jsast.Expression {
 		"set_time_limit": "set_time_limit", "memory_get_usage": "memory_get_usage",
 		"extension_loaded": "extension_loaded", "get_magic_quotes_gpc": "get_magic_quotes_gpc",
 		"constant": "constant", "is_readable": "is_readable", "is_writable": "is_writable",
-		"is_callable": "is_callable",
+		"is_callable": "is_callable", "version_compare": "version_compare",
 	}
 
 	if jsName, ok := builtins[name]; ok {
