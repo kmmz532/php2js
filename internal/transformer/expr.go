@@ -155,12 +155,84 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 		return t.transformClassConstFetch(n)
 	case *ast.ExprInclude:
 		return t.transformInclude(n)
+	case *ast.ExprRequire:
+		return &jsast.CallExpr{
+			Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "require"}},
+			Args:   []jsast.Expression{t.transformExpr(n.Expr)},
+			Await:  true,
+		}
+	case *ast.ExprRequireOnce:
+		return &jsast.CallExpr{
+			Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "require_once"}},
+			Args:   []jsast.Expression{t.transformExpr(n.Expr)},
+			Await:  true,
+		}
+	case *ast.ExprIncludeOnce:
+		return &jsast.CallExpr{
+			Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "include_once"}},
+			Args:   []jsast.Expression{t.transformExpr(n.Expr)},
+			Await:  true,
+		}
+	case *ast.ExprExit:
+		if n.Expr != nil {
+			return &jsast.CallExpr{
+				Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "exit"}},
+				Args:   []jsast.Expression{t.transformExpr(n.Expr)},
+			}
+		}
+		return &jsast.CallExpr{
+			Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "exit"}},
+			Args:   []jsast.Expression{},
+		}
+	case *ast.ExprAssignReference:
+		// JS doesn't have references; treat as normal assignment
+		return &jsast.AssignExpr{Op: "=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+	case *ast.ScalarHeredoc:
+		return t.transformHeredoc(n)
+	case *ast.ExprBrackets:
+		return t.transformExpr(n.Expr)
+	case *ast.ExprErrorSuppress:
+		// @ operator - just evaluate the expression, wrap in try-catch at runtime
+		return t.transformExpr(n.Expr)
+	case *ast.ExprPrint:
+		return &jsast.CallExpr{
+			Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "print"}},
+			Args:   []jsast.Expression{t.transformExpr(n.Expr)},
+		}
+	case *ast.ExprBinaryLogicalXor:
+		// XOR: (a && !b) || (!a && b)
+		return &jsast.BinaryExpr{Op: "!==", Left: &jsast.UnaryExpr{Op: "!", Operand: &jsast.UnaryExpr{Op: "!", Operand: t.transformExpr(n.Left), Prefix: true}, Prefix: true}, Right: &jsast.UnaryExpr{Op: "!", Operand: &jsast.UnaryExpr{Op: "!", Operand: t.transformExpr(n.Right), Prefix: true}, Prefix: true}}
+	case *ast.ExprCastObject:
+		return &jsast.CallExpr{Callee: &jsast.Identifier{Name: "Object"}, Args: []jsast.Expression{t.transformExpr(n.Expr)}}
+	case *ast.ExprAssignBitwiseAnd:
+		return &jsast.AssignExpr{Op: "&=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+	case *ast.ExprAssignBitwiseOr:
+		return &jsast.AssignExpr{Op: "|=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+	case *ast.ExprAssignBitwiseXor:
+		return &jsast.AssignExpr{Op: "^=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+	case *ast.ExprAssignShiftLeft:
+		return &jsast.AssignExpr{Op: "<<=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+	case *ast.ExprAssignShiftRight:
+		return &jsast.AssignExpr{Op: ">>=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+	case *ast.ExprAssignPow:
+		return &jsast.AssignExpr{Op: "**=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+	case *ast.ExprAssignCoalesce:
+		return &jsast.AssignExpr{Op: "??=", Left: t.transformExpr(n.Var), Right: t.transformExpr(n.Expr)}
+	case *ast.ExprClone:
+		return &jsast.CallExpr{
+			Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "Object"}, Property: &jsast.Identifier{Name: "assign"}},
+			Args:   []jsast.Expression{&jsast.ObjectExpr{}, t.transformExpr(n.Expr)},
+		}
+	case *ast.ExprBinaryPow:
+		return &jsast.BinaryExpr{Op: "**", Left: t.transformExpr(n.Left), Right: t.transformExpr(n.Right)}
 	case *ast.ExprList:
 		// list() is used in assignments - handled specially
 		return &jsast.Identifier{Name: "/* list() */"}
 	case *ast.Name:
 		return &jsast.Identifier{Name: t.nameToString(n)}
 	case *ast.NameFullyQualified:
+		return &jsast.Identifier{Name: t.namePartsToString(n.Parts)}
+	case *ast.NameRelative:
 		return &jsast.Identifier{Name: t.namePartsToString(n.Parts)}
 	default:
 		return &jsast.Identifier{Name: fmt.Sprintf("/* TODO: expr %T */", node)}
@@ -423,4 +495,13 @@ func (t *Transformer) transformInclude(n *ast.ExprInclude) jsast.Expression {
 		Args:   []jsast.Expression{t.transformExpr(n.Expr)},
 		Await:  true,
 	}
+}
+
+func (t *Transformer) transformHeredoc(n *ast.ScalarHeredoc) jsast.Expression {
+	// Heredoc/Nowdoc -> template literal
+	tl := &jsast.TemplateLiteral{}
+	for _, part := range n.Parts {
+		tl.Parts = append(tl.Parts, t.transformExpr(part))
+	}
+	return tl
 }

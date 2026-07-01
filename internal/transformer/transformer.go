@@ -158,6 +158,35 @@ func (t *Transformer) transformStmt(node ast.Vertex) []jsast.Statement {
 	case *ast.StmtUse:
 		// use statements become imports - simplified
 		return nil
+	case *ast.StmtStatic:
+		// static $var = val -> let var = val (static is per-request in Workers)
+		var stmts []jsast.Statement
+		for _, v := range n.Vars {
+			if sv, ok := v.(*ast.StmtStaticVar); ok {
+				decl := &jsast.VarDecl{
+					Kind: "let",
+					Name: t.extractVarName(sv.Var),
+				}
+				if sv.Expr != nil {
+					decl.Init = t.transformExpr(sv.Expr)
+				}
+				stmts = append(stmts, decl)
+			}
+		}
+		return stmts
+	case *ast.StmtConstList:
+		var stmts []jsast.Statement
+		for _, c := range n.Consts {
+			if cn, ok := c.(*ast.StmtConstant); ok {
+				stmts = append(stmts, &jsast.ExprStatement{
+					Expr: &jsast.CallExpr{
+						Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "define"}},
+						Args:   []jsast.Expression{&jsast.Literal{Value: fmt.Sprintf(`"%s"`, t.extractName(cn.Name)), Kind: "string"}, t.transformExpr(cn.Expr)},
+					},
+				})
+			}
+		}
+		return stmts
 	default:
 		return []jsast.Statement{&jsast.RawJS{
 			Code: fmt.Sprintf("/* TODO: unhandled stmt %T */", node),
