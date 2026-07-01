@@ -254,8 +254,19 @@ export function toArray(v) {
 }
 
 export async function include(path) {
-  console.warn(`Dynamic include not fully supported: ${path}`);
-  return null;
+  try {
+    let jsPath = String(path).replace(/\.php$/, '.js').replace(/\.inc\.php$/, '.js').replace(/\.inc$/, '.js');
+    // Adjust path for transpiled directory structure
+    if (jsPath.startsWith('/')) jsPath = '.' + jsPath;
+    else if (!jsPath.startsWith('.')) jsPath = './' + jsPath; // Assuming run from transpiled root or relative
+
+    // console.log(`[runtime] Including: ${jsPath}`);
+    const module = await import(jsPath);
+    return module;
+  } catch (e) {
+    console.warn(`Dynamic include failed for ${path}: ${e.message}`);
+    return null;
+  }
 }
 export async function include_once(path) { return include(path); }
 export async function require(path) { return include(path); }
