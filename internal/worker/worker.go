@@ -103,7 +103,8 @@ export default {
           }
         } else if (contentType.includes('application/json')) {
           try {
-            __runtime.POST = await request.json();
+            const jsonData = await request.json();
+            Object.assign(__runtime.POST, jsonData);
           } catch (e) {
             // Ignore JSON parse errors
           }

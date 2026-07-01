@@ -194,6 +194,10 @@ func (t *Transformer) mapFunctionName(name string) jsast.Expression {
 		"class_exists": "class_exists", "function_exists": "function_exists",
 		"call_user_func": "call_user_func", "call_user_func_array": "call_user_func_array",
 		"sleep": "sleep", "usleep": "usleep",
+		// Environment / Error
+		"error_reporting": "error_reporting", "ini_set": "ini_set", "ini_get": "ini_get",
+		"set_time_limit": "set_time_limit", "memory_get_usage": "memory_get_usage",
+		"extension_loaded": "extension_loaded", "get_magic_quotes_gpc": "get_magic_quotes_gpc",
 	}
 
 	if jsName, ok := builtins[name]; ok {

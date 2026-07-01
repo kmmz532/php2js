@@ -216,6 +216,16 @@ export function class_exists(name) { return typeof globalThis[name] === 'functio
 export function function_exists(name) { return typeof globalThis[name] === 'function'; }
 export function call_user_func(fn, ...args) { return typeof fn === 'function' ? fn(...args) : undefined; }
 export function call_user_func_array(fn, args) { return typeof fn === 'function' ? fn(...args) : undefined; }
+
+// --- Environment / Error ---
+export function error_reporting(level) { return 0; }
+export function ini_set(key, value) { return false; }
+export function ini_get(key) { return ''; }
+export function set_time_limit(seconds) { return true; }
+export function memory_get_usage() { return 1024 * 1024; }
+export function extension_loaded(name) { return true; }
+export function get_magic_quotes_gpc() { return false; }
+
 export function sleep(seconds) { return new Promise(r => setTimeout(r, seconds * 1000)); }
 export function usleep(microseconds) { return new Promise(r => setTimeout(r, microseconds / 1000)); }
 
