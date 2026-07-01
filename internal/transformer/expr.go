@@ -25,7 +25,11 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 		}
 		return &jsast.Literal{Value: "`" + escapeJSString(s) + "`", Kind: "string"}
 	case *ast.ScalarLnumber:
-		return &jsast.Literal{Value: string(n.Value), Kind: "number"}
+		val := string(n.Value)
+		if len(val) > 1 && val[0] == '0' && val[1] >= '0' && val[1] <= '7' {
+			val = "0o" + val[1:]
+		}
+		return &jsast.Literal{Value: val, Kind: "number"}
 	case *ast.ScalarDnumber:
 		return &jsast.Literal{Value: string(n.Value), Kind: "number"}
 	case *ast.ScalarEncapsed:
