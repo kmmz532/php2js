@@ -228,7 +228,7 @@ func (t *Transformer) transformInlineHTML(n *ast.StmtInlineHtml) []jsast.Stateme
 				Property: &jsast.Identifier{Name: "echo"},
 			},
 			Args: []jsast.Expression{
-				&jsast.Literal{Value: escapeJSString(html), Kind: "string"},
+				&jsast.Literal{Value: "`" + escapeJSString(html) + "`", Kind: "string"},
 			},
 		},
 	}}
