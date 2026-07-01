@@ -20,12 +20,12 @@ func main() {
 	verbose := flag.Bool("verbose", false, "Enable verbose output")
 	dumpAST := flag.Bool("dump-ast", false, "Dump PHP AST for debugging")
 	genWorker := flag.Bool("worker", true, "Generate Cloudflare Workers entry point")
-	projectName := flag.String("name", "pkwk4cf-app", "Project name for wrangler.toml")
+	projectName := flag.String("name", "php2js-app", "Project name for wrangler.toml")
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "pkwk4cf - PHP to JavaScript (Cloudflare Workers) Transpiler\n\n")
+		fmt.Fprintf(os.Stderr, "php2js - PHP to JavaScript (Cloudflare Workers) Transpiler\n\n")
 		fmt.Fprintf(os.Stderr, "Usage:\n")
-		fmt.Fprintf(os.Stderr, "  pkwk4cf -input <php-dir> -output <js-dir> [options]\n\n")
+		fmt.Fprintf(os.Stderr, "  php2js -input <php-dir> -output <js-dir> [options]\n\n")
 		fmt.Fprintf(os.Stderr, "Options:\n")
 		flag.PrintDefaults()
 	}
@@ -33,7 +33,7 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Printf("pkwk4cf v%s\n", version)
+		fmt.Printf("php2js v%s\n", version)
 		os.Exit(0)
 	}
 
