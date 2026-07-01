@@ -1,7 +1,9 @@
 // PHP Regex functions
 export function preg_match(pattern, subject, matches) {
   const { regex, flags } = _parsePattern(pattern);
-  const re = new RegExp(regex, flags.replace('g', ''));
+  let re;
+  try { re = new RegExp(regex, flags.replace('g', '')); }
+  catch (e) { console.warn('preg_match: ' + e.message); return 0; }
   const m = String(subject).match(re);
   if (!m) return 0;
   if (matches && typeof matches === 'object') {
@@ -13,7 +15,9 @@ export function preg_match(pattern, subject, matches) {
 
 export function preg_match_all(pattern, subject, matches) {
   const { regex, flags } = _parsePattern(pattern);
-  const re = new RegExp(regex, flags.includes('g') ? flags : flags + 'g');
+  let re;
+  try { re = new RegExp(regex, flags.includes('g') ? flags : flags + 'g'); }
+  catch (e) { console.warn('preg_match_all: ' + e.message); return 0; }
   const allMatches = [...String(subject).matchAll(re)];
   if (matches && typeof matches === 'object') {
     // Group by capture group index
@@ -35,7 +39,9 @@ export function preg_replace(pattern, replacement, subject) {
     return result;
   }
   const { regex, flags } = _parsePattern(pattern);
-  const re = new RegExp(regex, flags.includes('g') ? flags : flags + 'g');
+  let re;
+  try { re = new RegExp(regex, flags.includes('g') ? flags : flags + 'g'); }
+  catch (e) { console.warn('preg_replace: ' + e.message); return String(subject); }
   // Convert PHP backreferences ($1) to JS ($1 is same)
   const jsReplacement = String(replacement).replace(/\\(\d+)/g, '$$$1');
   return String(subject).replace(re, jsReplacement);
@@ -43,16 +49,24 @@ export function preg_replace(pattern, replacement, subject) {
 
 export function preg_replace_callback(pattern, callback, subject) {
   const { regex, flags } = _parsePattern(pattern);
-  const re = new RegExp(regex, flags.includes('g') ? flags : flags + 'g');
+  let re;
+  try { re = new RegExp(regex, flags.includes('g') ? flags : flags + 'g'); }
+  catch (e) { console.warn('preg_replace_callback: ' + e.message); return String(subject); }
+  let cb = callback;
+  if (typeof callback === 'string') {
+    cb = globalThis[callback];
+  }
   return String(subject).replace(re, (...args) => {
     const matches = args.slice(0, -2); // Remove offset and full string
-    return callback(matches);
+    return cb(matches);
   });
 }
 
 export function preg_split(pattern, subject, limit = -1) {
   const { regex, flags } = _parsePattern(pattern);
-  const re = new RegExp(regex, flags);
+  let re;
+  try { re = new RegExp(regex, flags); }
+  catch (e) { console.warn('preg_split: ' + e.message); return [String(subject)]; }
   const parts = String(subject).split(re);
   if (limit > 0 && parts.length > limit) {
     const result = parts.slice(0, limit - 1);

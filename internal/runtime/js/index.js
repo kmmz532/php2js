@@ -219,8 +219,14 @@ export function die(msg = '') { if (msg) echo(msg); throw new Error('__PHP_EXIT_
 export const exit = die;
 export function class_exists(name) { return typeof globalThis[name] === 'function'; }
 export function function_exists(name) { return typeof globalThis[name] === 'function'; }
-export function call_user_func(fn, ...args) { return typeof fn === 'function' ? fn(...args) : undefined; }
-export function call_user_func_array(fn, args) { return typeof fn === 'function' ? fn(...args) : undefined; }
+export function call_user_func(fn, ...args) { 
+  if (typeof fn === 'string') fn = globalThis[fn];
+  return typeof fn === 'function' ? fn(...args) : undefined; 
+}
+export function call_user_func_array(fn, args) { 
+  if (typeof fn === 'string') fn = globalThis[fn];
+  return typeof fn === 'function' ? fn(...args) : undefined; 
+}
 
 // --- Environment / Error ---
 export function version_compare(v1, v2, op) { return false; }
@@ -285,6 +291,8 @@ export async function include(path) {
     const module = await registry.default(phpPath);
     if (!module) {
       console.warn(`[runtime] Module not found in registry: ${phpPath}`);
+    } else if (typeof module.default === 'function') {
+      await module.default();
     }
     return module;
   } catch (e) {

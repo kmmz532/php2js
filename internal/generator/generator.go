@@ -35,10 +35,16 @@ func (g *Generator) Generate(prog *jsast.Program) string {
 		g.writef("\n")
 	}
 
+	g.writef("export default async function __main() {\n")
+	g.indent++
+
 	// Body
 	for _, stmt := range prog.Body {
 		g.genStmt(stmt)
 	}
+
+	g.indent--
+	g.writef("}\n")
 
 	return g.buf.String()
 }
