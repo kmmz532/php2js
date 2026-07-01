@@ -216,6 +216,7 @@ export function constant(name) { return _constants[name]; }
 
 // --- Misc ---
 export function die(msg = '') { if (msg) echo(msg); throw new Error('__PHP_EXIT__'); }
+export const exit = die;
 export function _resolveCallable(fn) {
   if (typeof fn === 'string') return globalThis[fn];
   if (Array.isArray(fn) && fn.length === 2) {
