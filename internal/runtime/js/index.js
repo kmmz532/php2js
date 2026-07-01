@@ -253,12 +253,13 @@ export function toArray(v) {
   return [v];
 }
 
-// --- Include helper ---
 export async function include(path) {
-  // Dynamic include - in Workers this is limited
   console.warn(`Dynamic include not fully supported: ${path}`);
   return null;
 }
+export async function include_once(path) { return include(path); }
+export async function require(path) { return include(path); }
+export async function require_once(path) { return include(path); }
 
 // Re-export sub-modules
 export * from './string.js';
