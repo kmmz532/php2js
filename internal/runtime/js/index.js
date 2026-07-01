@@ -262,16 +262,19 @@ export function toArray(v) {
 
 export async function include(path) {
   try {
-    let jsPath = String(path).replace(/\.php$/, '.js').replace(/\.inc\.php$/, '.js').replace(/\.inc$/, '.js');
-    // Adjust path for transpiled directory structure
-    if (jsPath.startsWith('/')) jsPath = '.' + jsPath;
-    else if (!jsPath.startsWith('.')) jsPath = './' + jsPath; // Assuming run from transpiled root or relative
-
-    // console.log(`[runtime] Including: ${jsPath}`);
-    const module = await import(jsPath);
+    let phpPath = String(path);
+    if (phpPath.startsWith('./')) phpPath = phpPath.slice(2);
+    if (phpPath.startsWith('/')) phpPath = phpPath.slice(1);
+    
+    // Import the registry which has static imports mapped
+    const registry = await import('../transpiled/registry.js');
+    const module = await registry.default(phpPath);
+    if (!module) {
+      console.warn(`[runtime] Module not found in registry: ${phpPath}`);
+    }
     return module;
   } catch (e) {
-    console.warn(`Dynamic include failed for ${path}: ${e.message}`);
+    console.warn(`[runtime] Dynamic include failed for ${path}: ${e.message}`);
     return null;
   }
 }

@@ -128,6 +128,27 @@ func (t *Transpiler) Run() (*Result, error) {
 		}
 	}
 
+	// 3.5 Generate registry.js
+	registryCode := "export default async function loadModule(path) {\n  switch(path) {\n"
+	for _, phpFile := range phpFiles {
+		relPath, _ := filepath.Rel(t.config.InputDir, phpFile)
+		jsPath := t.outputPath(relPath, "")
+		jsPath = strings.ReplaceAll(jsPath, "\\", "/") // Ensure forward slashes
+		// Remove leading slash if any
+		jsPath = strings.TrimPrefix(jsPath, "/")
+		
+		// The transpiled code might request the original php file name, or the js file name.
+		// We'll support both the PHP path and the JS path.
+		phpPath := strings.ReplaceAll(relPath, "\\", "/")
+		
+		registryCode += fmt.Sprintf("    case '%s': return await import('./%s');\n", phpPath, jsPath)
+		registryCode += fmt.Sprintf("    case '%s': return await import('./%s');\n", jsPath, jsPath)
+	}
+	registryCode += "    default: return null;\n  }\n}\n"
+	if err := t.writeOutput(filepath.Join(transpiledDir, "registry.js"), registryCode); err != nil {
+		return nil, fmt.Errorf("writing registry.js: %w", err)
+	}
+
 	// 4. Write runtime library
 	runtimeDir := filepath.Join(t.config.OutputDir, "src", "runtime")
 	if err := runtime.WriteRuntime(runtimeDir); err != nil {
