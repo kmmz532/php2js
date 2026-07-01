@@ -168,6 +168,8 @@ export function header(str, replace = true) {
   }
 }
 
+export function headers_sent() { return false; }
+
 export function setcookie(name, value = '', options = {}) {
   let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
   if (options.expires) cookie += `; Expires=${new Date(options.expires * 1000).toUTCString()}`;

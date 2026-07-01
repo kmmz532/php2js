@@ -193,7 +193,7 @@ func (t *Transformer) mapFunctionName(name string) jsast.Expression {
 		"preg_replace": "preg_replace", "preg_split": "preg_split",
 		"preg_replace_callback": "preg_replace_callback",
 		// HTTP
-		"header": "header", "setcookie": "setcookie",
+		"header": "header", "setcookie": "setcookie", "headers_sent": "headers_sent",
 		"session_start": "session_start", "session_destroy": "session_destroy",
 		"session_id": "session_id",
 		// Misc
