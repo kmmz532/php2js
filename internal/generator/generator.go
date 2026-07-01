@@ -258,11 +258,11 @@ func (g *Generator) genFor(s *jsast.ForStatement) {
 func (g *Generator) genForOf(s *jsast.ForOfStatement) {
 	g.writeIndent()
 	if s.Key != "" {
-		g.writef("for (const [%s, %s] of __runtime.entries(", s.Key, s.Value)
+		g.writef("for (let [%s, %s] of __runtime.entries(", s.Key, s.Value)
 		g.genExpr(s.Iter)
 		g.writef(")) {\n")
 	} else {
-		g.writef("for (const %s of __runtime.values(", s.Value)
+		g.writef("for (let %s of __runtime.values(", s.Value)
 		g.genExpr(s.Iter)
 		g.writef(")) {\n")
 	}
@@ -470,7 +470,9 @@ func (g *Generator) genExpr(expr jsast.Expression) {
 			if i > 0 {
 				g.writef(", ")
 			}
-			g.genExpr(el)
+			if el != nil {
+				g.genExpr(el)
+			}
 		}
 		g.writef("]")
 	case *jsast.ObjectExpr:

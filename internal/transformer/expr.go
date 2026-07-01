@@ -226,8 +226,15 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 	case *ast.ExprBinaryPow:
 		return &jsast.BinaryExpr{Op: "**", Left: t.transformExpr(n.Left), Right: t.transformExpr(n.Right)}
 	case *ast.ExprList:
-		// list() is used in assignments - handled specially
-		return &jsast.Identifier{Name: "/* list() */"}
+		arr := &jsast.ArrayExpr{}
+		for _, item := range n.Items {
+			if a, ok := item.(*ast.ExprArrayItem); ok && a != nil && a.Val != nil {
+				arr.Elements = append(arr.Elements, t.transformExpr(a.Val))
+			} else {
+				arr.Elements = append(arr.Elements, nil)
+			}
+		}
+		return arr
 	case *ast.Name:
 		return &jsast.Identifier{Name: t.nameToString(n)}
 	case *ast.NameFullyQualified:
