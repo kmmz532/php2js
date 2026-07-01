@@ -69,14 +69,6 @@ export function reset() {
   _output = '';
   _headers = new Headers();
   _statusCode = 200;
-  GET = {};
-  POST = {};
-  SERVER = {};
-  COOKIE = {};
-  SESSION = {};
-  REQUEST = {};
-  FILES = {};
-  GLOBALS = {};
 }
 
 export function getOutput() { return _output; }

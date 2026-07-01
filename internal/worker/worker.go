@@ -104,7 +104,7 @@ export default {
         } else if (contentType.includes('application/json')) {
           try {
             const jsonData = await request.json();
-            Object.assign(__runtime.POST, jsonData);
+            Object.assign(__runtime.superglobals._POST, jsonData);
           } catch (e) {
             // Ignore JSON parse errors
           }
@@ -116,17 +116,14 @@ export default {
       for (const cookie of cookieHeader.split(';')) {
         const [key, ...rest] = cookie.trim().split('=');
         if (key) {
-          __runtime.COOKIE[key] = decodeURIComponent(rest.join('='));
+          __runtime.superglobals._COOKIE[key] = decodeURIComponent(rest.join('='));
         }
       }
-
-      // Merge GET and POST into REQUEST
-      Object.assign(__runtime.REQUEST, __runtime.GET, __runtime.POST);
 
       // Set request headers into SERVER
       for (const [key, value] of request.headers.entries()) {
         const serverKey = 'HTTP_' + key.toUpperCase().replace(/-/g, '_');
-        __runtime.SERVER[serverKey] = value;
+        __runtime.superglobals._SERVER[serverKey] = value;
       }
 
       // Populate _REQUEST
