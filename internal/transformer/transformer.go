@@ -36,6 +36,11 @@ var jsReservedWords = map[string]bool{
 	"private": true, "protected": true, "public": true, "static": true,
 }
 
+// IsReserved checks if a given string is a JavaScript reserved word.
+func IsReserved(name string) bool {
+	return jsReservedWords[name]
+}
+
 // asyncFunctions are PHP functions that need to become async calls in JS.
 var asyncFunctions = map[string]bool{
 	"file_get_contents": true, "file_put_contents": true,
