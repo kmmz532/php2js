@@ -216,6 +216,9 @@ func (t *Transformer) mapFunctionName(name string) jsast.Expression {
 		}
 	}
 
-	// User-defined function - use as-is
-	return &jsast.Identifier{Name: name}
+	// User-defined function - use globalThis to avoid local variable shadowing
+	return &jsast.MemberExpr{
+		Object:   &jsast.Identifier{Name: "globalThis"},
+		Property: &jsast.Identifier{Name: name},
+	}
 }

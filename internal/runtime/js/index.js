@@ -216,15 +216,25 @@ export function constant(name) { return _constants[name]; }
 
 // --- Misc ---
 export function die(msg = '') { if (msg) echo(msg); throw new Error('__PHP_EXIT__'); }
-export const exit = die;
+export function _resolveCallable(fn) {
+  if (typeof fn === 'string') return globalThis[fn];
+  if (Array.isArray(fn) && fn.length === 2) {
+    const obj = typeof fn[0] === 'string' ? globalThis[fn[0]] : fn[0];
+    if (obj && typeof obj[fn[1]] === 'function') {
+      return obj[fn[1]].bind(obj);
+    }
+  }
+  return fn;
+}
+
 export function class_exists(name) { return typeof globalThis[name] === 'function'; }
 export function function_exists(name) { return typeof globalThis[name] === 'function'; }
 export function call_user_func(fn, ...args) { 
-  if (typeof fn === 'string') fn = globalThis[fn];
+  fn = _resolveCallable(fn);
   return typeof fn === 'function' ? fn(...args) : undefined; 
 }
 export function call_user_func_array(fn, args) { 
-  if (typeof fn === 'string') fn = globalThis[fn];
+  fn = _resolveCallable(fn);
   return typeof fn === 'function' ? fn(...args) : undefined; 
 }
 

@@ -1,3 +1,5 @@
+import { _resolveCallable } from './index.js';
+
 // PHP Regex functions
 export function preg_match(pattern, subject, matches) {
   const { regex, flags } = _parsePattern(pattern);
@@ -52,10 +54,7 @@ export function preg_replace_callback(pattern, callback, subject) {
   let re;
   try { re = new RegExp(regex, flags.includes('g') ? flags : flags + 'g'); }
   catch (e) { console.warn('preg_replace_callback: ' + e.message); return String(subject); }
-  let cb = callback;
-  if (typeof callback === 'string') {
-    cb = globalThis[callback];
-  }
+  let cb = _resolveCallable(callback);
   return String(subject).replace(re, (...args) => {
     const matches = args.slice(0, -2); // Remove offset and full string
     return cb(matches);
