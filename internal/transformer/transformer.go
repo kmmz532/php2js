@@ -58,12 +58,14 @@ type Transformer struct {
 	inFunction  bool
 	needsAsync  bool
 	scopes      []map[string]bool
+	globalVars  []map[string]bool
 }
 
 // New creates a new Transformer.
 func New() *Transformer {
 	return &Transformer{
-		scopes: []map[string]bool{{}},
+		scopes:     []map[string]bool{{}},
+		globalVars: []map[string]bool{{}},
 	}
 }
 
@@ -73,11 +75,13 @@ func (t *Transformer) currentScope() map[string]bool {
 
 func (t *Transformer) pushScope() {
 	t.scopes = append(t.scopes, make(map[string]bool))
+	t.globalVars = append(t.globalVars, make(map[string]bool))
 }
 
 func (t *Transformer) popScope() map[string]bool {
 	scope := t.scopes[len(t.scopes)-1]
 	t.scopes = t.scopes[:len(t.scopes)-1]
+	t.globalVars = t.globalVars[:len(t.globalVars)-1]
 	return scope
 }
 
@@ -360,6 +364,7 @@ func (t *Transformer) transformFunction(n *ast.StmtFunction) []jsast.Statement {
 	prevInFunc := t.inFunction
 	t.inFunction = true
 	t.needsAsync = false
+	t.pushScope()
 	defer func() { t.inFunction = prevInFunc }()
 
 	fn := &jsast.FunctionDecl{
@@ -378,6 +383,28 @@ func (t *Transformer) transformFunction(n *ast.StmtFunction) []jsast.Statement {
 	}
 
 	fn.IsAsync = t.needsAsync
+
+	scope := t.popScope()
+	var decls []jsast.Statement
+	for name := range scope {
+		if name != "this" && !jsReservedWords[name] {
+			isParam := false
+			for _, p := range n.Params {
+				if param, ok := p.(*ast.Parameter); ok {
+					if name == t.extractName(param.Var.(*ast.ExprVariable).Name) {
+						isParam = true
+					}
+				}
+			}
+			if !isParam {
+				decls = append(decls, &jsast.VarDecl{Kind: "let", Name: name})
+			}
+		}
+	}
+	if len(decls) > 0 {
+		fn.Body = append(decls, fn.Body...)
+	}
+
 	return []jsast.Statement{fn}
 }
 
@@ -544,21 +571,12 @@ func (t *Transformer) transformTry(n *ast.StmtTry) []jsast.Statement {
 }
 
 func (t *Transformer) transformGlobal(n *ast.StmtGlobal) []jsast.Statement {
-	// Convert global $var to: let var_ = __runtime.GLOBALS["var"]
-	var stmts []jsast.Statement
+	// Register as global in current scope
 	for _, v := range n.Vars {
 		name := t.extractVarName(v)
-		stmts = append(stmts, &jsast.VarDecl{
-			Kind: "let",
-			Name: name,
-			Init: &jsast.MemberExpr{
-				Object:   &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "GLOBALS"}},
-				Property: &jsast.Literal{Value: fmt.Sprintf(`"%s"`, name), Kind: "string"},
-				Computed: true,
-			},
-		})
+		t.globalVars[len(t.globalVars)-1][name] = true
 	}
-	return stmts
+	return nil
 }
 
 func (t *Transformer) transformUnset(n *ast.StmtUnset) []jsast.Statement {

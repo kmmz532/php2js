@@ -279,7 +279,18 @@ func (t *Transformer) transformVariable(n *ast.ExprVariable) jsast.Expression {
 		return &jsast.Identifier{Name: "this"}
 	}
 
-	return &jsast.Identifier{Name: sanitizeVarName(name)}
+	isGlobal := !t.inFunction || t.globalVars[len(t.globalVars)-1][name]
+	if isGlobal {
+		return &jsast.MemberExpr{
+			Object:   &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "GLOBALS"}},
+			Property: &jsast.Literal{Value: fmt.Sprintf(`"%s"`, name), Kind: "string"},
+			Computed: true,
+		}
+	}
+
+	name = sanitizeVarName(name)
+	t.currentScope()[name] = true
+	return &jsast.Identifier{Name: name}
 }
 
 func (t *Transformer) transformAssign(n *ast.ExprAssign) jsast.Expression {
