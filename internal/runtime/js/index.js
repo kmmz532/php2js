@@ -284,6 +284,22 @@ export async function include_once(path) { return include(path); }
 export async function require(path) { return include(path); }
 export async function require_once(path) { return include(path); }
 
+// --- Object Creation ---
+export async function createObject(ClassRef, ...args) {
+  if (typeof ClassRef !== 'function') {
+    if (typeof globalThis[ClassRef] === 'function') {
+      ClassRef = globalThis[ClassRef];
+    } else {
+      throw new Error(`Cannot instantiate non-class: ${ClassRef}`);
+    }
+  }
+  const obj = new ClassRef();
+  if (typeof obj.__construct === 'function') {
+    await obj.__construct(...args);
+  }
+  return obj;
+}
+
 // Re-export sub-modules
 export * from './string.js';
 export * from './array.js';
