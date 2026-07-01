@@ -68,6 +68,8 @@ export function array_reverse(arr, preserveKeys = false) {
 }
 
 export function array_map(callback, arr, ...extra) {
+  callback = resolveCallback(callback);
+
   if (callback === null) {
     // array_map(null, $a, $b) -> zip
     const arrays = [arr, ...extra];
@@ -76,10 +78,23 @@ export function array_map(callback, arr, ...extra) {
     for (let i = 0; i < maxLen; i++) result.push(arrays.map(a => Array.isArray(a) ? a[i] : undefined));
     return result;
   }
-  if (Array.isArray(arr)) return arr.map((v, i) => callback(v, ...extra.map(a => a?.[i])));
+  if (Array.isArray(arr)) 
+    return arr.map((v, i) => callback(v, ...extra.map(a => a?.[i])));
+
   const result = {};
-  for (const [k, v] of Object.entries(arr || {})) result[k] = callback(v);
+  for (const [k, v] of Object.entries(arr || {})) 
+    result[k] = callback(v);
+  
   return result;
+}
+
+function resolveCallback(cb) {
+    if (typeof cb === 'function') return cb;
+
+    if (typeof cb === 'string')
+        return globalThis[cb];
+
+    return cb;
 }
 
 export function array_filter(arr, callback, flag = 0) {

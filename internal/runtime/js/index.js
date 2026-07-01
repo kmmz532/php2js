@@ -308,25 +308,36 @@ export function toArray(v) {
 }
 
 export async function include(path) {
+  let phpPath = String(path);
+
+  if (phpPath.startsWith('./')) phpPath = phpPath.slice(2);
+  if (phpPath.startsWith('/')) phpPath = phpPath.slice(1);
+
   try {
-    let phpPath = String(path);
-    if (phpPath.startsWith('./')) phpPath = phpPath.slice(2);
-    if (phpPath.startsWith('/')) phpPath = phpPath.slice(1);
-    
-    // Import the registry which has static imports mapped
+    console.log("include start", phpPath);
+
     const registry = await import('../transpiled/registry.js');
+
+    console.log("registry loaded");
+
     const module = await registry.default(phpPath);
-    if (!module) {
-      console.warn(`[runtime] Module not found in registry: ${phpPath}`);
-    } else if (typeof module.default === 'function') {
+
+    console.log("module loaded", module);
+
+    if (module && typeof module.default === 'function') {
+      console.log("calling default()");
       await module.default();
+      console.log("default() finished");
     }
+
     return module;
+
   } catch (e) {
-    console.warn(`[runtime] Dynamic include failed for ${path}: ${e.message}`);
-    return null;
+    console.error("include error", phpPath, e);
+    throw e;
   }
 }
+
 export async function include_once(path) { return include(path); }
 export async function require(path) { return include(path); }
 export async function require_once(path) { return include(path); }
