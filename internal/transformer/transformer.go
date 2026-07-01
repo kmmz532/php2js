@@ -331,7 +331,7 @@ func (t *Transformer) transformParam(node ast.Vertex) *jsast.Param {
 	if p.DefaultValue != nil {
 		param.Default = t.transformExpr(p.DefaultValue)
 	}
-	if p.Variadic {
+	if p.VariadicTkn != nil {
 		param.Rest = true
 	}
 
