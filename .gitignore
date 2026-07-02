@@ -5,3 +5,5 @@ test_output/*
 test_input/*
 config/
 /php2js
+log.txt
+server.log
