@@ -18,6 +18,47 @@ async function getManifest() {
 // File metadata cache (simulates stat cache)
 const _metaCache = new Map();
 
+// Known transpiled files (from registry) - these "exist" as code files
+const _registryPaths = new Set([
+  'default.ini.php', 'en.lng.php', 'index.php', 'ja.lng.php',
+  'keitai.ini.php', 'pukiwiki.ini.php', 'rules.ini.php',
+  'lib/auth.php', 'lib/backup.php', 'lib/config.php', 'lib/convert_html.php',
+  'lib/diff.php', 'lib/file.php', 'lib/func.php', 'lib/html.php',
+  'lib/html_entities.php', 'lib/init.php', 'lib/link.php', 'lib/mail.php',
+  'lib/make_link.php', 'lib/mbstring.php', 'lib/plugin.php', 'lib/proxy.php',
+  'lib/pukiwiki.php',
+  'skin/keitai.skin.php', 'skin/pukiwiki.skin.php', 'skin/tdiary.skin.php',
+  'plugin/add.inc.php', 'plugin/attach.inc.php', 'plugin/article.inc.php',
+  'plugin/aname.inc.php', 'plugin/amazon.inc.php', 'plugin/author.inc.php',
+  'plugin/back.inc.php', 'plugin/backup.inc.php', 'plugin/basicauthlogout.inc.php',
+  'plugin/br.inc.php', 'plugin/bugtrack.inc.php', 'plugin/bugtrack_list.inc.php',
+  'plugin/calendar.inc.php', 'plugin/calendar2.inc.php', 'plugin/calendar_edit.inc.php',
+  'plugin/calendar_read.inc.php', 'plugin/calendar_viewer.inc.php', 'plugin/clear.inc.php',
+  'plugin/color.inc.php', 'plugin/comment.inc.php', 'plugin/contents.inc.php',
+  'plugin/counter.inc.php', 'plugin/deleted.inc.php', 'plugin/diff.inc.php',
+  'plugin/dump.inc.php', 'plugin/edit.inc.php', 'plugin/external_link.inc.php',
+  'plugin/filelist.inc.php', 'plugin/freeze.inc.php', 'plugin/hr.inc.php',
+  'plugin/img.inc.php', 'plugin/include.inc.php', 'plugin/includesubmenu.inc.php',
+  'plugin/insert.inc.php', 'plugin/interwiki.inc.php', 'plugin/lastmod.inc.php',
+  'plugin/links.inc.php', 'plugin/list.inc.php', 'plugin/loginform.inc.php',
+  'plugin/lookup.inc.php', 'plugin/ls.inc.php', 'plugin/ls2.inc.php',
+  'plugin/map.inc.php', 'plugin/md5.inc.php', 'plugin/memo.inc.php',
+  'plugin/menu.inc.php', 'plugin/navi.inc.php', 'plugin/new.inc.php',
+  'plugin/newpage.inc.php', 'plugin/nofollow.inc.php', 'plugin/norelated.inc.php',
+  'plugin/online.inc.php', 'plugin/pageaction.inc.php', 'plugin/paint.inc.php',
+  'plugin/passage.inc.php', 'plugin/pcomment.inc.php', 'plugin/popular.inc.php',
+  'plugin/random.inc.php', 'plugin/read.inc.php', 'plugin/recent.inc.php',
+  'plugin/ref.inc.php', 'plugin/related.inc.php', 'plugin/rename.inc.php',
+  'plugin/rightbar.inc.php', 'plugin/rss.inc.php', 'plugin/rss10.inc.php',
+  'plugin/ruby.inc.php', 'plugin/saml.inc.php', 'plugin/search.inc.php',
+  'plugin/search2.inc.php', 'plugin/server.inc.php', 'plugin/setlinebreak.inc.php',
+  'plugin/showrss.inc.php', 'plugin/size.inc.php', 'plugin/source.inc.php',
+  'plugin/stationary.inc.php', 'plugin/template.inc.php', 'plugin/topicpath.inc.php',
+  'plugin/touchgraph.inc.php', 'plugin/tracker.inc.php', 'plugin/tracker_list.inc.php',
+  'plugin/unfreeze.inc.php', 'plugin/update_entities.inc.php', 'plugin/version.inc.php',
+  'plugin/versionlist.inc.php', 'plugin/vote.inc.php', 'plugin/yetlist.inc.php',
+]);
+
 export async function file_get_contents(path) {
   const key = _normalizePath(path);
   
@@ -71,7 +112,10 @@ export async function file_put_contents(path, data, flags = 0) {
 export async function file_exists(path) {
   const key = _normalizePath(path);
   
-  // Check metadata cache first
+  // Check if this is a transpiled code file
+  if (_registryPaths.has(key)) return true;
+  
+  // Check metadata cache
   if (_metaCache.has(key)) return true;
   
   // Try R2
