@@ -121,6 +121,7 @@ export function reset() {
   _statusCode = 200;
   _obStack = [];
   _obActive = false;
+  includedFiles.clear();
   superglobals._GET = {};
   superglobals._POST = {};
   superglobals._REQUEST = {};
