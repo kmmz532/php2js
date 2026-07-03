@@ -78,9 +78,32 @@ export function preg_split(pattern, subject, limit = -1) {
 // Parse PHP regex pattern like /pattern/flags
 function _parsePattern(pattern) {
   const s = String(pattern);
-  const delimMatch = s.match(/^(.)(.+)\1([gimsuy]*)$/s);
-  if (delimMatch) {
-    return { regex: delimMatch[2], flags: delimMatch[3] };
+  if (!s || s.length < 2) return { regex: s, flags: '' };
+
+  const delim = s[0];
+  
+  // 最後のデリミタ位置を逆方向で探す（バックスラッシュエスケープ対応）
+  let lastDelimIndex = -1;
+  for (let i = s.length - 1; i >= 1; i--) {
+    if (s[i] === delim) {
+      let escapeCount = 0;
+      for (let j = i - 1; j >= 0 && s[j] === '\\'; j--) {
+        escapeCount++;
+      }
+      if (escapeCount % 2 === 0) {
+        lastDelimIndex = i;
+        break;
+      }
+    }
   }
-  return { regex: s, flags: '' };
+
+  if (lastDelimIndex <= 0) {
+    return { regex: s, flags: '' };
+  }
+
+  const regex = s.slice(1, lastDelimIndex);
+  const flags = s.slice(lastDelimIndex + 1);
+  const phpFlags = flags.replace(/g/g, ''); // g フラグ削除
+
+  return { regex, flags: phpFlags };
 }
