@@ -39,7 +39,26 @@ import * as __runtime from './runtime/index.js';
 
 export default {
   async fetch(request, env, ctx) {
-    // Initialize the PHP runtime with CF bindings
+    const url = new URL(request.url);
+    const assetPath = url.pathname.replace(/^\//, '');
+    if (assetPath && !assetPath.endsWith('.php') && !assetPath.endsWith('.inc')) {
+      const asset = await __runtime.get_asset(assetPath);
+      if (asset) {
+        return new Response(asset.body, {
+          status: 200,
+          headers: {
+            'Content-Type': assetPath.endsWith('.css') ? 'text/css; charset=utf-8'
+              : assetPath.endsWith('.js') ? 'application/javascript; charset=utf-8'
+              : assetPath.endsWith('.png') ? 'image/png'
+              : assetPath.endsWith('.jpg') || assetPath.endsWith('.jpeg') ? 'image/jpeg'
+              : assetPath.endsWith('.gif') ? 'image/gif'
+              : assetPath.endsWith('.svg') ? 'image/svg+xml; charset=utf-8'
+              : 'application/octet-stream',
+          },
+        });
+      }
+    }
+      // Initialize the PHP runtime with CF bindings
     __runtime.init({
       env,
       request,

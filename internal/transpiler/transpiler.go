@@ -1,6 +1,8 @@
 package transpiler
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -154,6 +156,9 @@ func (t *Transpiler) Run() (*Result, error) {
 	if err := runtime.WriteRuntime(runtimeDir); err != nil {
 		return nil, fmt.Errorf("writing runtime: %w", err)
 	}
+	if err := t.writeAssetManifest(); err != nil {
+		return nil, fmt.Errorf("writing asset manifest: %w", err)
+	}
 	if t.config.Verbose {
 		fmt.Println("Runtime library written")
 	}
@@ -213,4 +218,58 @@ func (t *Transpiler) writeOutput(path string, content string) error {
 		return err
 	}
 	return os.WriteFile(path, []byte(content), 0644)
+}
+
+type assetManifestEntry struct {
+	Binary bool   `json:"binary"`
+	Size   int    `json:"size"`
+	Data   string `json:"data"`
+}
+
+func (t *Transpiler) writeAssetManifest() error {
+	manifest := map[string]assetManifestEntry{}
+
+	err := filepath.Walk(t.config.InputDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+
+		ext := strings.ToLower(filepath.Ext(path))
+		if ext == ".php" || ext == ".inc" {
+			return nil
+		}
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		relPath, err := filepath.Rel(t.config.InputDir, path)
+		if err != nil {
+			return err
+		}
+
+		manifest[filepath.ToSlash(relPath)] = assetManifestEntry{
+			Binary: true,
+			Size:   len(data),
+			Data:   base64.StdEncoding.EncodeToString(data),
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	outputPath := filepath.Join(t.config.OutputDir, "src", "data-manifest.json")
+	bytes, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
+		return err
+	}
+	return os.WriteFile(outputPath, bytes, 0644)
 }

@@ -18,6 +18,19 @@ async function getManifest() {
 // File metadata cache (simulates stat cache)
 const _metaCache = new Map();
 
+function _base64ToString(data) {
+  return atob(data);
+}
+
+function _base64ToBytes(data) {
+  const binary = atob(data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
 // Known transpiled files (from registry) - these "exist" as code files
 const _registryPaths = new Set([
   'default.ini.php', 'en.lng.php', 'index.php', 'ja.lng.php',
@@ -78,10 +91,35 @@ export async function file_get_contents(path) {
   // Fallback to embedded manifest
   const manifest = await getManifest();
   if (key in manifest) {
-    return manifest[key];
+    const entry = manifest[key];
+    if (entry && typeof entry === 'object' && entry.data) {
+      return _base64ToString(entry.data);
+    }
+    return entry;
   }
   
   return false;
+}
+
+export async function get_asset(path) {
+  const key = _normalizePath(path);
+  const manifest = await getManifest();
+  if (!(key in manifest)) return null;
+
+  const entry = manifest[key];
+  if (entry && typeof entry === 'object' && entry.data) {
+    return {
+      body: entry.binary ? _base64ToBytes(entry.data) : _base64ToString(entry.data),
+      binary: Boolean(entry.binary),
+      size: entry.size ?? entry.data.length,
+    };
+  }
+
+  return {
+    body: String(entry ?? ''),
+    binary: false,
+    size: String(entry ?? '').length,
+  };
 }
 
 export async function file_put_contents(path, data, flags = 0) {
@@ -90,7 +128,7 @@ export async function file_put_contents(path, data, flags = 0) {
     // Write to manifest cache for dev mode
     const manifest = await getManifest();
     const key = _normalizePath(path);
-    manifest[key] = String(data);
+      manifest[key] = String(data);
     return String(data).length;
   }
   const key = _normalizePath(path);
@@ -293,7 +331,11 @@ export async function filesize(path) {
   
   // Check manifest
   const manifest = await getManifest();
-  if (key in manifest) return manifest[key].length;
+  if (key in manifest) {
+    const entry = manifest[key];
+    if (entry && typeof entry === 'object') return entry.size ?? (entry.data ? entry.data.length : 0);
+    return String(entry).length;
+  }
   
   // Check R2
   const r2 = getR2();
