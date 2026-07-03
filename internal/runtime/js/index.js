@@ -527,6 +527,8 @@ export function join(glue, pieces) {
   return String(pieces);
 }
 
+globalThis.join = join;
+
 export function system(cmd) { console.warn('system() not available:', cmd); return false; }
 export function popen(cmd, mode) { return false; }
 export function pclose(handle) { return 0; }

@@ -119,6 +119,7 @@ func (t *Transformer) mapFunctionName(name string) jsast.Expression {
 		"htmlentities": "htmlentities", "strip_tags": "strip_tags",
 		"nl2br": "nl2br", "wordwrap": "wordwrap",
 		"str_pad": "str_pad", "str_repeat": "str_repeat",
+		"join": "join",
 		"str_split": "str_split", "chunk_split": "chunk_split",
 		"ord": "ord", "chr": "chr", "bin2hex": "bin2hex", "hex2bin": "hex2bin",
 		"mb_strlen": "mb_strlen", "mb_strpos": "mb_strpos",
