@@ -392,6 +392,9 @@ func (t *Transformer) transformMethodCall(n *ast.ExprMethodCall) jsast.Expressio
 func (t *Transformer) transformStaticCall(n *ast.ExprStaticCall) jsast.Expression {
 	className := t.extractCallName(n.Class)
 	method := t.extractName(n.Call)
+	if className == "parent" && t.inClass != "" {
+		className = "super"
+	}
 
 	var args []jsast.Expression
 	for _, a := range n.Args {
@@ -417,8 +420,12 @@ func (t *Transformer) transformPropertyFetch(n *ast.ExprPropertyFetch) jsast.Exp
 }
 
 func (t *Transformer) transformStaticPropertyFetch(n *ast.ExprStaticPropertyFetch) jsast.Expression {
+	className := t.extractCallName(n.Class)
+	if className == "parent" && t.inClass != "" {
+		className = "super"
+	}
 	return &jsast.MemberExpr{
-		Object:   t.transformExpr(n.Class),
+		Object:   &jsast.Identifier{Name: className},
 		Property: &jsast.Identifier{Name: t.extractVarName(n.Prop)},
 	}
 }
@@ -578,6 +585,9 @@ func (t *Transformer) transformClassConstFetch(n *ast.ExprClassConstFetch) jsast
 	constName := t.extractName(n.Const)
 	if className == "self" && t.inClass != "" {
 		className = t.inClass
+	}
+	if className == "parent" && t.inClass != "" {
+		className = "super"
 	}
 	return &jsast.MemberExpr{
 		Object:   &jsast.Identifier{Name: className},
