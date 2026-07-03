@@ -525,6 +525,10 @@ export function closedir(handle) {
   return true;
 }
 
+globalThis.opendir = opendir;
+globalThis.readdir = readdir;
+globalThis.closedir = closedir;
+
 // Normalize path for R2 key
 function _normalizePath(path) {
   return String(path)

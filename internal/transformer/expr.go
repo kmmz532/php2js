@@ -264,6 +264,9 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 
 func (t *Transformer) transformVariable(n *ast.ExprVariable) jsast.Expression {
 	name := t.extractVarName(n)
+	if name == "this_" || name == "this" {
+		return &jsast.Identifier{Name: "this"}
+	}
 
 	// Check for superglobals
 	if mapped, ok := phpSuperglobals[name]; ok {
@@ -284,11 +287,6 @@ func (t *Transformer) transformVariable(n *ast.ExprVariable) jsast.Expression {
 			Property: &jsast.Literal{Value: fmt.Sprintf(`"%s"`, staticName), Kind: "string"},
 			Computed: true,
 		}
-	}
-
-	// $this -> this
-	if name == "this" {
-		return &jsast.Identifier{Name: "this"}
 	}
 
 	isGlobal := !t.inFunction || t.globalVars[len(t.globalVars)-1][name]

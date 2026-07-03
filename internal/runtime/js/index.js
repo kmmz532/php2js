@@ -13,6 +13,7 @@ let _d1 = null;
 // Output buffer stack
 let _obStack = [];
 let _obActive = false;
+let _callArgsStack = [];
 
 // Superglobals
 export const GLOBALS = {
@@ -121,6 +122,7 @@ export function reset() {
   _statusCode = 200;
   _obStack = [];
   _obActive = false;
+  _callArgsStack = [];
   includedFiles.clear();
   superglobals._GET = {};
   superglobals._POST = {};
@@ -312,13 +314,33 @@ export function _registerRuntimeExport(name, fn) { _runtimeExports[name] = fn; }
 
 export function class_exists(name) { return typeof globalThis[name] === 'function'; }
 export function function_exists(name) { return typeof globalThis[name] === 'function' || name in _runtimeExports; }
-export function call_user_func(fn, ...args) {
-  fn = _resolveCallable(fn);
-  return typeof fn === 'function' ? fn(...args) : undefined;
+export function func_num_args() {
+  return _callArgsStack.length ? _callArgsStack[_callArgsStack.length - 1].length : 0;
 }
-export function call_user_func_array(fn, args) {
+export function func_get_args() {
+  return _callArgsStack.length ? [..._callArgsStack[_callArgsStack.length - 1]] : [];
+}
+
+export async function call_user_func(fn, ...args) {
   fn = _resolveCallable(fn);
-  return typeof fn === 'function' ? fn(...(Array.isArray(args) ? args : Object.values(args || {}))) : undefined;
+  if (typeof fn !== 'function') return undefined;
+  _callArgsStack.push(args);
+  try {
+    return await fn(...args);
+  } finally {
+    _callArgsStack.pop();
+  }
+}
+export async function call_user_func_array(fn, args) {
+  fn = _resolveCallable(fn);
+  if (typeof fn !== 'function') return undefined;
+  const callArgs = Array.isArray(args) ? args : Object.values(args || {});
+  _callArgsStack.push(callArgs);
+  try {
+    return await fn(...callArgs);
+  } finally {
+    _callArgsStack.pop();
+  }
 }
 
 // --- Environment / Error ---
@@ -539,6 +561,14 @@ export function ftruncate(handle, size) { return true; }
 export function rewind(handle) { return true; }
 export function set_file_buffer(handle, size) { return 0; }
 export function fputs(handle, data, length) { return 0; }
+globalThis.flock = flock;
+globalThis.ftruncate = ftruncate;
+globalThis.rewind = rewind;
+globalThis.set_file_buffer = set_file_buffer;
+globalThis.fputs = fputs;
+globalThis.func_num_args = func_num_args;
+globalThis.func_get_args = func_get_args;
+globalThis.preg_quote = preg_quote;
 
 // Additional missing globals
 export function get_html_entity_pattern() { return '[a-zA-Z][a-zA-Z0-9]*'; }
@@ -557,10 +587,18 @@ export function get_auth_external_login_url(page, uri) { return '#'; }
 export function get_auth_user_prefix() { return ''; }
 export function pkwk_base_uri_type_stack_peek() { return 0; }
 export function exist_plugin(name) { return true; }
-export function exist_plugin_action(name) { return false; }
-export function exist_plugin_convert(name) { return false; }
-export function do_plugin_action(name) { return false; }
-export function do_plugin_convert(name) { return ''; }
+export function exist_plugin_action(name) { return typeof globalThis[`plugin_${name}_action`] === 'function'; }
+export function exist_plugin_convert(name) { return typeof globalThis[`plugin_${name}_convert`] === 'function'; }
+export async function do_plugin_action(name) {
+  const handler = globalThis[`plugin_${name}_action`];
+  if (typeof handler !== 'function') return false;
+  return await handler();
+}
+export async function do_plugin_convert(name) {
+  const handler = globalThis[`plugin_${name}_convert`];
+  if (typeof handler !== 'function') return '';
+  return await handler();
+}
 export function attach_filelist() { return ''; }
 export function make_link(str) { return str; }
 export function convert_html(source) { 
