@@ -66,7 +66,7 @@ var asyncFunctions = map[string]bool{
 	"pkwk_script_uri_base": true, "get_base_uri": true, "get_page_uri": true, "get_script_uri": true,
 
 	// Runtime file functions
-	"file_get_contents": true, "file_put_contents": true, "file_exists": true,
+	"file_get_contents": true, "file_put_contents": true, "file_exists": true, "make_search": true,
 	"unlink": true, "rename": true, "scandir": true, "glob": true, "mkdir": true, "rmdir": true,
 	"is_dir": true, "is_file": true, "file": true, "filesize": true, "filemtime": true,
 	"filectime": true, "fileatime": true, "fopen": true, "fclose": true, "copy": true,

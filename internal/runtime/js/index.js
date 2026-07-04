@@ -570,48 +570,6 @@ globalThis.func_num_args = func_num_args;
 globalThis.func_get_args = func_get_args;
 globalThis.preg_quote = preg_quote;
 
-// Additional missing globals
-export function get_html_entity_pattern() { return '[a-zA-Z][a-zA-Z0-9]*'; }
-export function pkwk_touch_file(path, time) { return true; }
-export function input_filter(v) { return v; }
-export function prepare_links_related(page) { }
-export function links_get_related(page) { return {}; }
-export function prepare_display_materials() { }
-export function links_update(page) { }
-export function manage_page_redirect() { return false; }
-export function ensure_valid_auth_user() { }
-export function check_readable(page, flag1, flag2) { return true; }
-export function is_page_readable(page) { return true; }
-export function get_ticketlink_jira_projects() { return []; }
-export function get_auth_external_login_url(page, uri) { return '#'; }
-export function get_auth_user_prefix() { return ''; }
-export function pkwk_base_uri_type_stack_peek() { return 0; }
-export function exist_plugin(name) { return true; }
-export function exist_plugin_action(name) { return typeof globalThis[`plugin_${name}_action`] === 'function'; }
-export function exist_plugin_convert(name) { return typeof globalThis[`plugin_${name}_convert`] === 'function'; }
-export async function do_plugin_action(name) {
-  const handler = globalThis[`plugin_${name}_action`];
-  if (typeof handler !== 'function') return false;
-  return await handler();
-}
-export async function do_plugin_convert(name) {
-  const handler = globalThis[`plugin_${name}_convert`];
-  if (typeof handler !== 'function') return '';
-  return await handler();
-}
-export function attach_filelist() { return ''; }
-export function make_link(str) { return str; }
-export function convert_html(source) { 
-  if (Array.isArray(source)) return source.join('');
-  return String(source ?? '');
-}
-export function guess_script_absolute_uri() {
-  const s = superglobals._SERVER;
-  const scheme = s['HTTPS'] === 'on' ? 'https' : 'http';
-  const host = s['HTTP_HOST'] || s['SERVER_NAME'] || 'localhost';
-  const script = s['SCRIPT_NAME'] || '/';
-  return `${scheme}://${host}${script}`;
-}
 
 // Re-export sub-modules
 export * from './string.js';

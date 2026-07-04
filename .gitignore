@@ -8,4 +8,10 @@ config/
 log.txt
 server.log
 /php2js.exe
+bin/
+temp_ast
+temp_ast_out
+ast_dump.txt
+debug.html
+test.html
 

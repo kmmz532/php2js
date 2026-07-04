@@ -6,9 +6,10 @@ let _dataManifest = null;
 async function getManifest() {
   if (_dataManifest === null) {
     try {
-      const m = await import('../data-manifest.json');
+      const m = await import('../data-manifest.json', { with: { type: 'json' } });
       _dataManifest = m.default || m;
-    } catch {
+    } catch (err) {
+      console.error("MANIFEST IMPORT ERROR:", err);
       _dataManifest = {};
     }
   }

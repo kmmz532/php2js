@@ -379,6 +379,8 @@ func (t *Transformer) transformMethodCall(n *ast.ExprMethodCall) jsast.Expressio
 	obj := t.transformExpr(n.Var)
 	method := t.extractName(n.Method)
 
+	t.needsAsync = true
+
 	var args []jsast.Expression
 	for _, a := range n.Args {
 		if arg, ok := a.(*ast.Argument); ok {
@@ -389,6 +391,7 @@ func (t *Transformer) transformMethodCall(n *ast.ExprMethodCall) jsast.Expressio
 	return &jsast.CallExpr{
 		Callee: &jsast.MemberExpr{Object: obj, Property: &jsast.Identifier{Name: method}},
 		Args:   args,
+		Await:  true,
 	}
 }
 
@@ -398,6 +401,8 @@ func (t *Transformer) transformStaticCall(n *ast.ExprStaticCall) jsast.Expressio
 	if className == "parent" && t.inClass != "" {
 		className = "super"
 	}
+
+	t.needsAsync = true
 
 	var args []jsast.Expression
 	for _, a := range n.Args {
@@ -411,7 +416,8 @@ func (t *Transformer) transformStaticCall(n *ast.ExprStaticCall) jsast.Expressio
 			Object:   &jsast.Identifier{Name: className},
 			Property: &jsast.Identifier{Name: method},
 		},
-		Args: args,
+		Args:  args,
+		Await: true,
 	}
 }
 
