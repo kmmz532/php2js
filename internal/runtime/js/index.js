@@ -436,7 +436,7 @@ export async function include(path) {
     return module;
   } catch (e) {
     if (e.message === '__PHP_EXIT__') throw e;
-    console.error("include error", phpPath, e.message);
+    console.error("include error", phpPath, e.stack);
     return null;
   }
 }

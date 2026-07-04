@@ -280,6 +280,7 @@ func (e *NewExpr) exprNode()        {}
 type MemberExpr struct {
 	Object, Property Expression
 	Computed         bool
+	Optional         bool
 }
 
 func (e *MemberExpr) nodeType() string { return "MemberExpr" }

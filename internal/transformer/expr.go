@@ -20,9 +20,12 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 		return t.transformVariable(n)
 	case *ast.ScalarString:
 		s := string(n.Value)
+		isSingle := false
 		if len(s) >= 2 && (s[0] == '\'' || s[0] == '"') {
+			isSingle = s[0] == '\''
 			s = s[1 : len(s)-1]
 		}
+		s = parsePHPString(s, isSingle)
 		return &jsast.Literal{Value: "`" + escapeJSString(s) + "`", Kind: "string"}
 	case *ast.ScalarLnumber:
 		val := string(n.Value)
@@ -520,11 +523,23 @@ func (t *Transformer) transformTernary(n *ast.ExprTernary) jsast.Expression {
 	}
 }
 
+func setOptionalMember(expr jsast.Expression) jsast.Expression {
+	if mem, ok := expr.(*jsast.MemberExpr); ok {
+		return &jsast.MemberExpr{
+			Object:   setOptionalMember(mem.Object),
+			Property: mem.Property,
+			Computed: mem.Computed,
+			Optional: true,
+		}
+	}
+	return expr
+}
+
 func (t *Transformer) transformIsset(n *ast.ExprIsset) jsast.Expression {
 	if len(n.Vars) == 1 {
 		return &jsast.CallExpr{
 			Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "isset"}},
-			Args:   []jsast.Expression{t.transformExpr(n.Vars[0])},
+			Args:   []jsast.Expression{setOptionalMember(t.transformExpr(n.Vars[0]))},
 		}
 	}
 	// Multiple vars: isset($a, $b) -> __runtime.isset(a) && __runtime.isset(b)
@@ -532,7 +547,7 @@ func (t *Transformer) transformIsset(n *ast.ExprIsset) jsast.Expression {
 	for i, v := range n.Vars {
 		call := &jsast.CallExpr{
 			Callee: &jsast.MemberExpr{Object: &jsast.Identifier{Name: "__runtime"}, Property: &jsast.Identifier{Name: "isset"}},
-			Args:   []jsast.Expression{t.transformExpr(v)},
+			Args:   []jsast.Expression{setOptionalMember(t.transformExpr(v))},
 		}
 		if i == 0 {
 			exprs = call

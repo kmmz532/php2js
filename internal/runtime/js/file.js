@@ -19,7 +19,12 @@ async function getManifest() {
 const _metaCache = new Map();
 
 function _base64ToString(data) {
-  return atob(data);
+  const binary = atob(data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new TextDecoder('utf-8').decode(bytes);
 }
 
 function _base64ToBytes(data) {

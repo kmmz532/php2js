@@ -45,8 +45,6 @@ func (t *Transformer) extractCallName(node ast.Vertex) string {
 		return t.namePartsToString(n.Parts)
 	case *ast.Identifier:
 		return string(n.Value)
-	case *ast.ExprVariable:
-		return t.extractVarName(n)
 	}
 	return "unknown"
 }
@@ -90,6 +88,57 @@ func sanitizeVarName(name string) string {
 	// Replace invalid chars
 	name = strings.ReplaceAll(name, "-", "_")
 	return name
+}
+
+// parsePHPString parses a raw PHP string literal (without enclosing quotes) into its actual byte value.
+func parsePHPString(s string, isSingle bool) string {
+	var buf strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] == '\\' && i+1 < len(s) {
+			next := s[i+1]
+			if isSingle {
+				if next == '\\' || next == '\'' {
+					buf.WriteByte(next)
+					i++
+					continue
+				}
+			} else {
+				switch next {
+				case 'n':
+					buf.WriteByte('\n')
+					i++
+					continue
+				case 'r':
+					buf.WriteByte('\r')
+					i++
+					continue
+				case 't':
+					buf.WriteByte('\t')
+					i++
+					continue
+				case 'v':
+					buf.WriteByte('\v')
+					i++
+					continue
+				case 'e':
+					buf.WriteByte('\x1B')
+					i++
+					continue
+				case 'f':
+					buf.WriteByte('\f')
+					i++
+					continue
+				case '\\', '$', '"':
+					buf.WriteByte(next)
+					i++
+					continue
+				}
+				// Optionally handle octal and hex escapes here, but for now this covers the basics.
+			}
+		}
+		buf.WriteByte(s[i])
+	}
+	return buf.String()
 }
 
 // escapeJSString escapes a string for JS.

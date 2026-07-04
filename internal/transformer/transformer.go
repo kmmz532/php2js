@@ -43,19 +43,40 @@ func IsReserved(name string) bool {
 
 // asyncFunctions are PHP functions that need to become async calls in JS.
 var asyncFunctions = map[string]bool{
-	"file_get_contents": true, "file_put_contents": true,
-	"file_exists": true, "unlink": true, "rename": true,
-	"fopen": true, "fclose": true, "fread": true, "fwrite": true,
-	"fgets": true, "feof": true, "catbody": true,
-	"do_plugin_action": true, "do_plugin_convert": true, "do_plugin_init": true, "exist_plugin_action": true, "exist_plugin_convert": true,
-	"get_source": true, "convert_html": true, "make_search": true, "check_readable": true, "prepare_display_materials": true,
-	"die_invalid_pagename": true, "manage_page_redirect": true, "ensure_valid_auth_user": true,
-	"scandir": true, "glob": true, "mkdir": true, "rmdir": true,
+	// User functions
+	"Factory_DList": true, "Factory_Table": true, "Factory_YTable": true, "Factory_Div": true,
+	"do_diff": true, "do_update_diff": true, "get_source": true, "page_write": true,
+	"file_head": true, "file_write": true, "add_recent": true, "lastmodified_add": true,
+	"put_lastmodified": true, "delete_recent_changes_cache": true, "autolink_pattern_write": true,
+	"update_autoalias_cache_file": true, "get_readings": true, "pkwk_chown": true,
+	"pkwk_touch_file": true, "pkwk_file_get_contents": true, "prepare_display_materials": true,
+	"prepare_links_related": true, "pkwk_log_updates": true, "is_page": true,
+	"page_exists_in_history": true, "is_freeze": true, "auto_template": true,
+	"do_search": true, "catrule": true, "die_message": true, "die_invalid_pagename": true,
+	"get_autolink_pattern": true, "get_autoaliases": true, "md5_file": true,
+	"catbody": true, "get_html_scripting_data": true, "edit_form": true,
+	"get_template_page_list": true, "links_get_related_db": true, "links_update": true,
+	"links_init": true, "links_add": true, "links_delete": true, "links_get_objects": true,
+	"links_do_search_page": true, "pop_before_smtp": true, "make_link": true,
+	"get_interwiki_url": true, "get_ticketlink_jira_projects": true, "exist_plugin": true,
+	"exist_plugin_action": true, "exist_plugin_convert": true, "exist_plugin_inline": true,
+	"do_plugin_action": true, "do_plugin_convert": true, "do_plugin_inline": true,
+	"pkwk_http_request": true, "check_readable": true, "convert_html": true,
+	"manage_page_redirect": true, "ensure_valid_auth_user": true, "check_editable": true,
+	"pkwk_script_uri_base": true, "get_base_uri": true, "get_page_uri": true, "get_script_uri": true,
+
+	// Runtime file functions
+	"file_get_contents": true, "file_put_contents": true, "file_exists": true,
+	"unlink": true, "rename": true, "scandir": true, "glob": true, "mkdir": true, "rmdir": true,
+	"is_dir": true, "is_file": true, "file": true, "filesize": true, "filemtime": true,
+	"filectime": true, "fileatime": true, "fopen": true, "fclose": true, "copy": true,
+	"touch": true, "opendir": true,
+
+	// Original runtime functions
 	"mysql_query": true, "mysqli_query": true, "mysql_connect": true,
 	"mysqli_connect": true, "mysql_fetch_array": true, "mysqli_fetch_assoc": true,
 	"mysql_fetch_assoc": true, "mysql_num_rows": true, "mysqli_num_rows": true,
 	"sleep": true, "usleep": true,
-	// Session
 	"session_start": true, "session_destroy": true,
 }
 

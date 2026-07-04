@@ -492,11 +492,18 @@ func (g *Generator) genExpr(expr jsast.Expression) {
 			g.writef(")")
 		}
 		if e.Computed {
+			if e.Optional {
+				g.writef("?.")
+			}
 			g.writef("[")
 			g.genExpr(e.Property)
 			g.writef("]")
 		} else {
-			g.writef(".")
+			if e.Optional {
+				g.writef("?.")
+			} else {
+				g.writef(".")
+			}
 			g.genExpr(e.Property)
 		}
 	case *jsast.ArrayExpr:

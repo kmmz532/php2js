@@ -238,13 +238,15 @@ func (t *Transpiler) writeAssetManifest() error {
 		}
 
 		ext := strings.ToLower(filepath.Ext(path))
-		if ext == ".php" || ext == ".inc" {
-			return nil
-		}
+		isPHP := ext == ".php" || ext == ".inc"
 
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
+		var data []byte
+		var readErr error
+		if !isPHP {
+			data, readErr = os.ReadFile(path)
+			if readErr != nil {
+				return readErr
+			}
 		}
 
 		relPath, err := filepath.Rel(t.config.InputDir, path)
@@ -253,7 +255,7 @@ func (t *Transpiler) writeAssetManifest() error {
 		}
 
 		manifest[filepath.ToSlash(relPath)] = assetManifestEntry{
-			Binary: true,
+			Binary: !isPHP,
 			Size:   len(data),
 			Data:   base64.StdEncoding.EncodeToString(data),
 		}
