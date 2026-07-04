@@ -20,7 +20,7 @@ var phpSuperglobals = map[string]string{
 	"_REQUEST": "__runtime.superglobals._REQUEST",
 	"_FILES":   "__runtime.superglobals._FILES",
 	"_ENV":     "__runtime.superglobals._ENV",
-	"GLOBALS":  "__runtime.superglobals.GLOBALS",
+	"GLOBALS":  "__runtime.GLOBALS",
 }
 
 // jsReservedWords are JavaScript reserved words that need mangling.

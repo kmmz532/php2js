@@ -266,6 +266,20 @@ func (t *Transformer) transformExpr(node ast.Vertex) jsast.Expression {
 }
 
 func (t *Transformer) transformVariable(n *ast.ExprVariable) jsast.Expression {
+	// Handle variable variables (e.g. $$var or ${$var})
+	if _, isId := n.Name.(*ast.Identifier); !isId {
+		if expr, ok := n.Name.(ast.Vertex); ok {
+			return &jsast.MemberExpr{
+				Object: &jsast.MemberExpr{
+					Object:   &jsast.Identifier{Name: "__runtime"},
+					Property: &jsast.Identifier{Name: "GLOBALS"},
+				},
+				Property: t.transformExpr(expr),
+				Computed: true,
+			}
+		}
+	}
+
 	name := t.extractVarName(n)
 	if name == "this_" || name == "this" {
 		return &jsast.Identifier{Name: "this"}
@@ -323,7 +337,10 @@ func (t *Transformer) transformAssignLHS(node ast.Vertex) jsast.Expression {
 			defaultVal = &jsast.ArrayExpr{}
 		}
 
-		leftObj := &jsast.AssignExpr{Op: "??=", Left: obj, Right: defaultVal}
+		var leftObj jsast.Expression = obj
+		if !isRuntimeImport(obj) {
+			leftObj = &jsast.AssignExpr{Op: "??=", Left: obj, Right: defaultVal}
+		}
 		
 		if dimFetch.Dim == nil {
 			return &jsast.MemberExpr{
@@ -343,6 +360,18 @@ func (t *Transformer) transformAssignLHS(node ast.Vertex) jsast.Expression {
 		}
 	}
 	return t.transformExpr(node)
+}
+
+func isRuntimeImport(expr jsast.Expression) bool {
+	if id, ok := expr.(*jsast.Identifier); ok && id.Name == "__runtime" {
+		return true
+	}
+	if member, ok := expr.(*jsast.MemberExpr); ok {
+		if id, ok := member.Object.(*jsast.Identifier); ok && id.Name == "__runtime" {
+			return true
+		}
+	}
+	return false
 }
 
 func (t *Transformer) transformEncapsed(n *ast.ScalarEncapsed) jsast.Expression {
